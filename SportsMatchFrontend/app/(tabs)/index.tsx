@@ -1,12 +1,105 @@
-// import "./global.css"
-import { Text, View } from "react-native";
- 
-export default function App() {
+import { Text, View, TouchableOpacity, ImageBackground, Image, StyleSheet, Dimensions } from 'react-native';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { increment, decrement } from '@/src/redux/slices/counterSlice';
+import background from '@/assets/images/background.jpg'
+import mainLogo from '@/assets/images/main-logo.png'
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+export default function Counter() {
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-bold text-white bg-blue-500 p-4 rounded">
-        Welcome to Nativewind!
-      </Text>
-    </View>
+    <ImageBackground source={background} style={styles.background}>
+      <View style={styles.container}>
+        <Image 
+          source={mainLogo} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => {}}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.buttonSpacer} />
+          
+          <TouchableOpacity
+            style={styles.signupButton}
+            onPress={() => {}}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+    opacity: 10,
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  logo: {
+    width: screenWidth * 0.8,
+    height: screenHeight * 0.25, 
+  },
+  buttonContainer: {
+    marginTop: 40,
+    width: screenWidth * 0.7,
+  },
+  buttonSpacer: {
+    height: 16,
+  },
+  loginButton: {
+    backgroundColor: '#881c1c',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  signupButton: {
+    backgroundColor: '#34C759',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+});
