@@ -4,14 +4,14 @@ import { Typescale } from '@/constants/theme';
 
 export default function GamesView() {
     return (
-        <SafeAreaView style={styles.mainContainer}>
+        <SafeAreaView style={styles.container}>
             <Text style={styles.headerText}>Games</Text>
         </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
     padding: 12
   },
   headerText: {
