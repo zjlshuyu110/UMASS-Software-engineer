@@ -1,12 +1,12 @@
 import { Text, View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-export default function SearchView() {
+export default function InboxView() {
     return (
         <SafeAreaView style={styles.mainContainer}>
-            <Text style={styles.headerText}>Discover</Text>
+            <Text style={styles.headerText}>Inbox</Text>
         </SafeAreaView>
-    )
+    );
 }
 
 const styles = StyleSheet.create({

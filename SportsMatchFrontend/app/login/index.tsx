@@ -18,7 +18,8 @@ export default function LoginForm() {
 
   const handleLogin = () => {
     // TODO: Implement actual login logic
-    Alert.alert("Login", "Login functionality will be implemented");
+    // Alert.alert("Login", "Login functionality will be implemented");
+    router.push("../(tabs)")
   };
 
   const handleBack = () => {
