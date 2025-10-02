@@ -3,9 +3,9 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
+const tintColorLight = '#8c1c1c';
 const tintColorDark = '#fff';
 
 export const Colors = {
@@ -26,6 +26,69 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
 };
+
+export const Typescale = StyleSheet.create({
+  displayL: {
+    fontSize: 64,
+    fontWeight: 400
+  },
+  displayM: {
+    fontSize: 48,
+    fontWeight: 400
+  },
+  displayS: {
+    fontSize: 40,
+    fontWeight: 400
+  },
+  headlineL: {
+    fontSize: 32,
+    fontWeight: 400
+  },
+  headlineM: {
+    fontSize: 28,
+    fontWeight: 400
+  },
+  headlineS: {
+    fontSize: 24,
+    fontWeight: 400
+  },
+  titleL: {
+    fontSize: 20,
+    fontWeight: 400
+  },
+  titleM: {
+    fontSize: 16,
+    fontWeight: 500
+  },
+  titleS: {
+    fontSize: 14,
+    fontWeight: 500
+  },
+  bodyL: {
+    fontSize: 16,
+    fontWeight: 400
+  },
+  bodyM: {
+    fontSize: 14,
+    fontWeight: 400
+  },
+  bodyS: {
+    fontSize: 12,
+    fontWeight: 400
+  },
+  labelL: {
+    fontSize: 14,
+    fontWeight: 500
+  },
+  labelM: {
+    fontSize: 12,
+    fontWeight: 500
+  },
+  labelS: {
+    fontSize: 10,
+    fontWeight: 500
+  },
+})
 
 export const Fonts = Platform.select({
   ios: {

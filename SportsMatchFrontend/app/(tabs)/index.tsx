@@ -1,5 +1,6 @@
 import { Text, View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Typescale } from '@/constants/theme';
 
 export default function SearchView() {
     return (
@@ -14,7 +15,6 @@ const styles = StyleSheet.create({
     padding: 12
   },
   headerText: {
-    fontSize: 24,
-    fontWeight: 600
+    ... Typescale.headlineS
   }
 });
