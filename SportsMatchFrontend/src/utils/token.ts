@@ -12,7 +12,18 @@ export const saveToken = async (token: string) => {
 
 export const getToken = async () => {
   try {
-    return await AsyncStorage.getItem(TOKEN_KEY);
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (payload.exp < currentTime) {
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        return null;
+      }
+    }
+
+    return token;
   } catch (e) {
     console.error('Error getting token:', e);
     return null;

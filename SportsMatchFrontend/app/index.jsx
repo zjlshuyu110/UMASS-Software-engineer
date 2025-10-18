@@ -7,13 +7,26 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
+import { useAppDispatch } from "@/hooks/reduxHooks";
 import background from "@/assets/images/background.jpg";
 import mainLogo from "@/assets/images/main-logo.png";
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { loadToken } from "@/src/redux/slices/userSlice";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function Login() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    async function checkIfTokenExists() {
+      if (await dispatch(loadToken()).unwrap()) {
+        router.push("../(tabs)");
+      }
+    }
+    checkIfTokenExists();
+  }, []);
   const router = useRouter();
   return (
     <ImageBackground source={background} style={styles.background}>
@@ -35,8 +48,10 @@ export default function Login() {
 
           <TouchableOpacity
             style={styles.signupButton}
-            onPress={() => {}}
             activeOpacity={0.8}
+            onPress={() => {
+              router.push("/signup");
+            }}
           >
             <Text style={styles.signupButtonText}>Sign Up</Text>
           </TouchableOpacity>
