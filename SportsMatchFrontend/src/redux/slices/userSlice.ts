@@ -1,14 +1,22 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { getToken, deleteToken } from '@/src/utils/token';
+
+export const loadToken = createAsyncThunk('auth/loadToken', async () => {
+  const token = await getToken();
+  return token;
+});
+
+export const logout = createAsyncThunk('auth/logout', async () => {
+    await deleteToken();
+  });
 
 interface UserState {
-    id: string | null;
     email: string | null;
     name: string | null;
     token: string | null;
 }
 
 const initialState: UserState = {
-    id: null,
     email: null,
     name: null,
     token: null,
@@ -18,24 +26,22 @@ const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
-        setUser(state, action: PayloadAction<UserState>) {
-            state.id = action.payload.id;
+        login(state, action: PayloadAction<{ email: string, token: string }>) {
             state.email = action.payload.email;
-            state.name = action.payload.name;
             state.token = action.payload.token;
         },
-        clearUser(state) {
-            state.id = null;
-            state.email = null;
-            state.name = null;
-            state.token = null;
+        updateUser(state, action: PayloadAction<UserState>) {
+            return action.payload;
         },
+    },
+    extraReducers: (builder) => {
+        builder.addCase(loadToken.fulfilled, (state, action) => {
+            state.token = action.payload;
+        });
+        builder.addCase(logout.fulfilled, (state) => {
+            state.token = null;
+        });
     },
 });
 
-export const isUserLoggedIn = (state: { user: UserState }) => true;
-// export const isUserLoggedIn = (state: { user: UserState }) => state.user.token !== null;
-
-
-export const { setUser, clearUser } = userSlice.actions;
-export default userSlice.reducer;
+export const { login, updateUser } = userSlice.actions;
