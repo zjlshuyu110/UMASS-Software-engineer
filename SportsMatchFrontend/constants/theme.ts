@@ -8,6 +8,25 @@ import { Platform, StyleSheet } from 'react-native';
 const tintColorLight = '#8c1c1c';
 const tintColorDark = '#fff';
 
+const primaryWhite = '#FFF6F5';
+const primaryVeryLight = '#FCD5CF';
+const primaryLight = '#B23434';
+const primaryColor = '#8C1C1C';
+const primaryDark = '#760A0A';
+const primaryVeryDark = '#551111';
+const primaryBlack = '#3A0303';
+
+const gray100 = '#F9F9F9';
+const gray200 = '#F3F3F3';
+const gray300 = '#EBEBEB';
+const gray400 = '#E2E2E2';
+const gray500 = '#D5D5D5';
+const gray600 = '#B5B5B5';
+const gray700 = '#8E8E8E';
+const gray800 = '#505050';
+const gray900 = '#3A3A3A';
+const gray950 = '#262626';
+
 export const Colors = {
   light: {
     text: '#11181C',
@@ -25,6 +44,23 @@ export const Colors = {
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
   },
+  primaryWhite: primaryWhite,
+  primaryVeryLight: primaryVeryLight,
+  primaryLight: primaryLight,
+  primary: primaryColor,
+  primaryDark: primaryDark,
+  primaryVeryDark: primaryVeryDark,
+  primaryBlack: primaryBlack,
+  gray100: gray100,
+  gray200: gray200,
+  gray300: gray300,
+  gray400: gray400,
+  gray500: gray500,
+  gray600: gray600,
+  gray700: gray700,
+  gray800: gray800,
+  gray900: gray900,
+  gray950: gray950,
 };
 
 export const Typescale = StyleSheet.create({
