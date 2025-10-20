@@ -27,12 +27,16 @@ export default function DiscoverView() {
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>{sport.name}</Text>
                   </TouchableOpacity>
                 ))}
+                  <TouchableOpacity style={styles.categoryCard}>
+                    <IconSymbol size={40} name="square.grid.2x2.fill" color={'#B23434'}></IconSymbol>
+                    <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>More</Text>
+                  </TouchableOpacity>
             </View>
 
             {/* Games Happening Today */}
             <Text style={styles.sectionText}>Happening Today</Text>
             <View style={{ rowGap: 8 }}>
-              {gamesToday.map((game) => <GameCard key={game.name} game={game}></GameCard>)}
+              {gamesToday.map((game, index) => <GameCard key={index} game={game}></GameCard>)}
             </View>
           </ScrollView>
         </SafeAreaView>
@@ -47,7 +51,6 @@ const sports: { name: string; icon: SFSymbol }[] = [
   { name: 'Football', icon: 'figure.american.football' },
   { name: 'Badminton', icon: 'figure.badminton' },
   { name: 'Tennis', icon: 'figure.tennis' },
-  { name: 'Hockey', icon: 'figure.hockey' },
 ]
 
 const dateTemps = [8, 9, 10, 11, 12, 13, 14, 15].map((hour) => {
