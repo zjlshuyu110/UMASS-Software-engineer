@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, GestureResponderEvent } from 'react-native'
 import { Typescale, Colors } from '@/constants/theme';
-import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Game } from '@/src/models/Game';
+import { Ionicons } from '@expo/vector-icons';
 
 const dateTimeTemp = new Date()
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -12,12 +12,14 @@ const formatter = new Intl.NumberFormat('en-US', {
 
 type GameCardProps = {
     game: Game
+    style?: object
+    onPress?: () => void
 }
 
-export default function GameCard({ game }: GameCardProps) {
+export default function GameCard({ game, style = {}, onPress = () => {} }: GameCardProps) {
     return (
-        <TouchableOpacity>
-            <View style={styles.container}>
+        <TouchableOpacity onPress={onPress} >
+            <View style={[styles.container, style]}>
                 <View style={styles.dateCol}>
                     <Text style={styles.dateSecondary}>{daysOfWeek[dateTimeTemp.getDay()]}</Text>
                     <Text style={styles.datePrimary}>{formatter.format(dateTimeTemp.getMonth())}/{formatter.format(dateTimeTemp.getDate())}</Text>
@@ -26,15 +28,15 @@ export default function GameCard({ game }: GameCardProps) {
                 <View style={styles.detailCol}>
                     <Text style={styles.gameTitle} numberOfLines={1} ellipsizeMode='tail'>{ game.name }</Text>
                     <View style={styles.detailRow}>
-                        <IconSymbol size={12} name='flame' color={Colors.gray600}></IconSymbol>
+                        <Ionicons size={12} name='flame' color={Colors.gray600}></Ionicons>
                         <Text style={styles.gameDetail}>{game.sportType}</Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <IconSymbol size={12} name='location' color={Colors.gray600}></IconSymbol>
+                        <Ionicons size={12} name='location' color={Colors.gray600}></Ionicons>
                         <Text style={styles.gameDetail}>Recreation Center</Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <IconSymbol size={12} name='person' color={Colors.gray600}></IconSymbol>
+                        <Ionicons size={12} name='person' color={Colors.gray600}></Ionicons>
                         <Text style={styles.gameDetail}>{ game.players.length } / { game.maxPlayers}</Text>
                     </View>
                 </View>
