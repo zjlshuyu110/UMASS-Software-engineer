@@ -123,3 +123,119 @@ exports.getUserGames = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+exports.inviteUser = async (req, res) => {
+  try {
+    const { gameId, userEmail, username } = req.body;
+    const game = await Game.findById(gameId);
+    if (!game) return res.status(404).json({ msg: 'Game not found' });
+    
+    // Check if current user is the creator
+    if (game.creator.toString() !== req.user.id) {
+      return res.status(403).json({ msg: 'Only the creator can invite users' });
+    }
+
+    // Find user by email or username
+    let userToInvite;
+    if (userEmail) {
+      userToInvite = await User.findOne({ email: userEmail.toLowerCase() });
+    } else if (username) {
+      userToInvite = await User.findOne({ username: username.toLowerCase() });
+    } else {
+      return res.status(400).json({ msg: 'Either userEmail or username is required' });
+    }
+
+    if (!userToInvite) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Check if user is already a player
+    if (game.players.includes(userToInvite._id)) {
+      return res.status(400).json({ msg: 'User is already a player in this game' });
+    }
+
+    // Check if user is already invited
+    const existingInvite = game.invitations.find(inv => inv.email === userToInvite.email);
+    if (existingInvite) {
+      return res.status(400).json({ msg: 'User already has a pending invitation for this game' });
+    }
+
+    // Add invitation
+    game.invitations.push({ email: userToInvite.email });
+    await game.save();
+
+    // Send email notification
+    await sendInviteEmail(userToInvite.email, game.name, req.user.name || 'A user');
+    
+    res.json({ msg: 'Invitation sent successfully', game });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
+/**
+ * Search for games based on filters:
+ * - name (partial, case-insensitive)
+ * - sportType (exact)
+ * - status (exact)
+ * - playerEmail (find games where this email is a player)
+ * - creatorEmail (games created by this email)
+ * - invitedEmail (games where this email is invited, with optional invitation status)
+ * - dateFrom/dateTo (game creation date range)
+ * - supports combinations and paginated results
+**/
+exports.searchGames = async (req, res) => {
+  try {
+    const {
+      name,
+      sportType,
+      status,
+      playerEmail,
+      creatorEmail,
+      invitedEmail,
+      inviteStatus,
+      dateFrom,
+      dateTo,
+      page = 1,
+      pageSize = 20
+    } = req.query;
+    const query = {};
+    if (name) query.name = { $regex: name, $options: 'i' };
+    if (sportType) query.sportType = sportType;
+    if (status) query.status = status;
+    // Creator by email filter
+    if (creatorEmail) {
+      const creator = await User.findOne({ email: creatorEmail.toLowerCase() });
+      if (creator) query.creator = creator._id;
+      else return res.json({ games: [] });
+    }
+    // Players by email filter
+    if (playerEmail) {
+      const player = await User.findOne({ email: playerEmail.toLowerCase() });
+      if (player) query.players = player._id;
+      else return res.json({ games: [] });
+    }
+    // Invitation filter
+    if (invitedEmail) {
+      let invitationQuery = { 'invitations.email': invitedEmail.toLowerCase() };
+      if (inviteStatus) invitationQuery['invitations.status'] = inviteStatus;
+      Object.assign(query, invitationQuery);
+    }
+    // Date range
+    if (dateFrom || dateTo) {
+      query.createdAt = {};
+      if (dateFrom) query.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) query.createdAt.$lte = new Date(dateTo);
+    }
+    // Pagination
+    const skip = (parseInt(page) - 1) * parseInt(pageSize);
+    let dbQuery = Game.find(query).populate('creator players');
+    dbQuery = dbQuery.skip(skip).limit(parseInt(pageSize));
+    const games = await dbQuery.exec();
+    res.json({ games });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};

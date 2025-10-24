@@ -27,4 +27,12 @@ router.post('/remove', auth, gameController.removePlayer);
 // @desc    Get all games for the user
 router.get('/my', auth, gameController.getUserGames);
 
+// @route   GET /api/games/search
+// @desc    Comprehensive search for games with various filters (includes playerUsername, creatorUsername, invitedUsername)
+router.get('/search', gameController.searchGames);
+
+// @route   POST /api/games/invite
+// @desc    Invite a user to a game (creator only)
+router.post('/invite', auth, gameController.inviteUser);
+
 module.exports = router;

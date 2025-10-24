@@ -78,4 +78,53 @@ describe('Game API', () => {
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body.games)).toBe(true);
   });
+
+  it('creator should invite user2 to the game', async () => {
+    const res = await request(app)
+      .post('/api/games/invite')
+      .set('x-auth-token', token1)
+      .send({ gameId, userEmail: user2.email });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.msg).toBe('Invitation sent successfully');
+  });
+
+  it('should not allow non-creator to invite users', async () => {
+    const res = await request(app)
+      .post('/api/games/invite')
+      .set('x-auth-token', token2)
+      .send({ gameId, userEmail: 'someone@example.com' });
+    expect(res.statusCode).toBe(403);
+    expect(res.body.msg).toBe('Only the creator can invite users');
+  });
+
+  it('should search games by name', async () => {
+    const res = await request(app)
+      .get('/api/games/search?name=Test')
+      .expect(200);
+    expect(res.body.games.some(g => g.name.includes('Test'))).toBe(true);
+  });
+  it('should filter by sportType', async () => {
+    const res = await request(app)
+      .get('/api/games/search?sportType=Soccer')
+      .expect(200);
+    expect(res.body.games.every(g => g.sportType === 'Soccer')).toBe(true);
+  });
+  it('should filter by playerEmail', async () => {
+    const res = await request(app)
+      .get(`/api/games/search?playerEmail=${user1.email}`)
+      .expect(200);
+    expect(res.body.games.length).toBeGreaterThan(0);
+  });
+  it('should filter by creatorEmail', async () => {
+    const res = await request(app)
+      .get(`/api/games/search?creatorEmail=${user1.email}`)
+      .expect(200);
+    expect(res.body.games.length).toBeGreaterThan(0);
+  });
+  it('should paginate search results', async () => {
+    const res = await request(app)
+      .get('/api/games/search?page=1&pageSize=1')
+      .expect(200);
+    expect(res.body.games.length).toBeLessThanOrEqual(1);
+  });
 });

@@ -22,5 +22,8 @@ app.use('/api/auth', upload.none(), authRoutes);
 const gameRoutes = require('./routes/gameRoutes');
 app.use('/api/games', upload.none(), gameRoutes);
 
+const userRoutes = require('./routes/userRoutes');
+app.use('/api/users', upload.none(), userRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

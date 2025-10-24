@@ -25,16 +25,18 @@ async function sendOTPEmail(email, otp) {
 
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    let user = await User.findOne({ email });
+    const { name, username, email, password } = req.body;
+    if (!username) return res.status(400).json({ msg: 'Username is required.' });
+    let user = await User.findOne({ $or: [{ email }, { username }] });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      let conflict = (user.email === email) ? 'Email' : 'Username';
+      return res.status(400).json({ msg: `${conflict} already exists` });
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const otp = generateOTP();
-    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-    user = new User({ name, email, password: hashedPassword, isVerified: false, otp, otpExpires });
+    const otpExpires = Date.now() + 10 * 60 * 1000;
+    user = new User({ name, username, email, password: hashedPassword, isVerified: false, otp, otpExpires });
     await user.save();
     await sendOTPEmail(email, otp);
     res.status(201).json({ msg: 'Signup successful. Please verify your email with the OTP sent.' });
@@ -72,19 +74,18 @@ exports.verify = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
+    const { identifier, password } = req.body; // identifier can be username OR email
+    if (!identifier || !password)
+      return res.status(400).json({ msg: 'Both identifier and password are required.' });
+    const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] });
+    if (!user)
       return res.status(400).json({ msg: 'Invalid credentials' });
-    }
-    if (!user.isVerified) {
+    if (!user.isVerified)
       return res.status(400).json({ msg: 'Please verify your email before logging in.' });
-    }
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if (!isMatch)
       return res.status(400).json({ msg: 'Invalid credentials' });
-    }
-    const payload = { user: { id: user.id } };
+    const payload = { user: { id: user.id, username: user.username } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token });
   } catch (err) {
