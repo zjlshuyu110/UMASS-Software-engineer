@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ScrollView } from "react-native";
+import { Text, View, StyleSheet, ScrollView, Touchable, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typescale } from "@/constants/theme";
 import { Game } from "@/src/models/Game";
@@ -6,6 +6,7 @@ import GameCard from "@/src/components/discover/game-card";
 import React from "react";
 import { dateTemps } from "@/src/utils/date-utils";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function GamesView() {
   function navigateToGameDetails(game: Game) {
@@ -71,16 +72,23 @@ export default function GamesView() {
         </View>
       </View>
       <View>
-        <Text
-          style={{
-            marginTop: 16,
-            ...Typescale.bodyM,
-            color: "#000000",
-            ...Typescale.titleL,
-          }}
-        >
-          My Games
-        </Text>
+        <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Text
+            style={{
+              color: "#000000",
+              ...Typescale.titleL,
+            }}
+          >
+            My Games
+          </Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => router.push("/gameDetails/newGame")}
+          >
+            <Text style={styles.addButtonText}>New</Text>
+            <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
         <View>
           <ScrollView
             horizontal={true}
@@ -173,6 +181,25 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingVertical: 12,
+  },
+  addButton: {
+    backgroundColor: "#881c1c",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addButtonText: {
+    color: "#FFFFFF",
+    marginRight: 6,
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 const gamesToday: Game[] = [

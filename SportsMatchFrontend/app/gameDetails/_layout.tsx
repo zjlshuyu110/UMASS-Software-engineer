@@ -10,6 +10,7 @@ export default function GameDetailsLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="newGame" />
       </Stack>
     </>
   );
