@@ -5,9 +5,25 @@ import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import GameCard from '@/src/components/discover/game-card';
 import { SFSymbol } from 'expo-symbols';
 import { Game } from '@/src/models/Game';
+import { router } from 'expo-router';
 
 
 export default function DiscoverView() {
+  function navigateToGameDetails(game: Game) {
+      router.push({
+        pathname: "/gameDetails" as any,
+        params: {
+          name: game.name,
+          sportType: game.sportType,
+          creator: game.creator,
+          players: JSON.stringify(game.players),
+          maxPlayers: game.maxPlayers.toString(),
+          status: game.status,
+          startAt: game.startAt.toISOString(),
+          createdAt: game.createdAt.toISOString(),
+        },
+      });
+    }
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
@@ -36,7 +52,7 @@ export default function DiscoverView() {
             {/* Games Happening Today */}
             <Text style={styles.sectionText}>Happening Today</Text>
             <View style={{ rowGap: 8 }}>
-              {gamesToday.map((game, index) => <GameCard key={index} game={game}></GameCard>)}
+              {gamesToday.map((game, index) => <GameCard key={index} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
             </View>
           </ScrollView>
         </SafeAreaView>

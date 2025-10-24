@@ -76,6 +76,10 @@ export const Typescale = StyleSheet.create({
     fontSize: 40,
     fontWeight: 400
   },
+  headlineXL: {
+    fontSize: 36,
+    fontWeight: 400
+  },
   headlineL: {
     fontSize: 32,
     fontWeight: 400
@@ -111,6 +115,14 @@ export const Typescale = StyleSheet.create({
   bodyS: {
     fontSize: 12,
     fontWeight: 400
+  },
+  labelXXL: {
+    fontSize: 20,
+    fontWeight: 500
+  },
+  LabelXL: {
+    fontSize: 16,
+    fontWeight: 500
   },
   labelL: {
     fontSize: 14,
