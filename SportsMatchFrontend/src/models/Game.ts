@@ -7,4 +7,5 @@ export interface Game {
     status: string;
     startAt: Date;
     createdAt: Date;
+    location: string;
 }

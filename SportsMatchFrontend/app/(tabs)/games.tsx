@@ -185,6 +185,7 @@ const gamesToday: Game[] = [
     status: "open",
     startAt: dateTemps[0],
     createdAt: dateTemps[0],
+    location: "Rec Center Terrace"
   },
   {
     name: "Chill Pickleball Game For Beginners",
@@ -195,6 +196,7 @@ const gamesToday: Game[] = [
     status: "open",
     startAt: dateTemps[1],
     createdAt: dateTemps[1],
+    location: "Rec Center Terrace"
   },
   {
     name: "Volleyball Practice",
@@ -205,6 +207,7 @@ const gamesToday: Game[] = [
     status: "open",
     startAt: dateTemps[2],
     createdAt: dateTemps[2],
+    location: "Rec Center Terrace"
   },
   {
     name: "Soccer Match",
@@ -215,6 +218,7 @@ const gamesToday: Game[] = [
     status: "open",
     startAt: dateTemps[3],
     createdAt: dateTemps[3],
+    location: "Rec Center Terrace"
   },
   {
     name: "Morning Tennis Session",
@@ -225,6 +229,7 @@ const gamesToday: Game[] = [
     status: "open",
     startAt: dateTemps[4],
     createdAt: dateTemps[4],
+    location: "Rec Center Terrace"
   },
   {
     name: "Evening Badminton Fun",
@@ -235,5 +240,6 @@ const gamesToday: Game[] = [
     status: "open",
     startAt: dateTemps[5],
     createdAt: dateTemps[5],
+    location: "Rec Center Terrace"
   },
 ];

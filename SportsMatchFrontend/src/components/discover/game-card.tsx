@@ -33,7 +33,7 @@ export default function GameCard({ game, style = {}, onPress = () => {} }: GameC
                     </View>
                     <View style={styles.detailRow}>
                         <Ionicons size={12} name='location' color={Colors.gray600}></Ionicons>
-                        <Text style={styles.gameDetail}>Recreation Center</Text>
+                        <Text style={styles.gameDetail}>{game.location}</Text>
                     </View>
                     <View style={styles.detailRow}>
                         <Ionicons size={12} name='person' color={Colors.gray600}></Ionicons>

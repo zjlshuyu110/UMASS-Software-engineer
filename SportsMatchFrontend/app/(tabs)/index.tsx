@@ -76,9 +76,39 @@ const dateTemps = [8, 9, 10, 11, 12, 13, 14, 15].map((hour) => {
 })
 
 const gamesToday: Game[] = [
-  { name: "Basketball Tournament: Winner Gets $1000!", sportType: "Basketball", creator: "Nam Nguyen", players: [], maxPlayers: 24, status: "open", startAt: dateTemps[0], createdAt: dateTemps[0] },
-  { name: "Chill Pickleball Game For Beginners", sportType: "Pickleball", creator: "Sahil Kamath", players: [], maxPlayers: 8, status: "open", startAt: dateTemps[1], createdAt: dateTemps[1]},
-  { name: "Volleyball Practice", sportType: "Volleyball", creator: "Kenneth Rodrigues", players: [], maxPlayers: 18, status: "open", startAt: dateTemps[2], createdAt: dateTemps[2]},
+  {
+    name: "Basketball Tournament: Winner Gets $1000!",
+    sportType: "Basketball",
+    creator: "Nam Nguyen",
+    players: [],
+    maxPlayers: 24,
+    status: "open",
+    startAt: dateTemps[0],
+    createdAt: dateTemps[0],
+    location: "Mill valley Basketball court"
+  },
+  {
+    name: "Chill Pickleball Game For Beginners",
+    sportType: "Pickleball",
+    creator: "Sahil Kamath",
+    players: [],
+    maxPlayers: 8,
+    status: "open",
+    startAt: dateTemps[1],
+    createdAt: dateTemps[1],
+    location:"Somewhere in Hadley"
+  },
+  {
+    name: "Volleyball Practice",
+    sportType: "Volleyball",
+    creator: "Kenneth Rodrigues",
+    players: [],
+    maxPlayers: 18,
+    status: "open",
+    startAt: dateTemps[2],
+    createdAt: dateTemps[2],
+    location: "Recreation centre"
+  },
 ];
 
 const styles = StyleSheet.create({

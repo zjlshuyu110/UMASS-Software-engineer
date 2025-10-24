@@ -81,7 +81,7 @@ export default function GameDetails() {
                   color={Colors.gray800}
                   style={{ marginTop: 4 }}
                 ></Ionicons>
-                <Text style={styles.gameDetail}>Recreation Center</Text>
+                <Text style={styles.gameDetail}>{game.location}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Ionicons
