@@ -34,7 +34,7 @@ export default function GameDetails() {
           className="flex-1 w-full"
         >
           <Ionicons name="arrow-back" size={30} color="#881c1c" />
-        </TouchableOpacity>{" "}
+        </TouchableOpacity>
         <Text style={styles.headerText}>Details</Text>
       </View>
       <View style={{ margin: 12 }}>

@@ -47,7 +47,6 @@ export default function GameCard({ game, style = {}, onPress = () => {} }: GameC
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         flexDirection: 'row',
         paddingHorizontal: 12,
         paddingVertical: 8,
