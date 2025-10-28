@@ -117,7 +117,7 @@ Wrestling, Rowing, Field Hockey, Other
 - Response: `{ msg }` (sends email to game creator)
 
 ## Notes
-- All endpoints require a valid JWT in the `x-auth-token` header.
+- All endpoints require a valid JWT in the `Authorization` header as `Bearer <token>`.
 - Invitations are sent via email using the email in your .env file.
 - Only the creator can remove players or cancel a game.
 - Players can only join games they are invited to.

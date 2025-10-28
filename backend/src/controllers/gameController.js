@@ -2,7 +2,7 @@ const Game = require('../models/Game');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 
-async function sendInviteEmail(email, gameName, inviter) {
+async function sendInviteEmail(email, gameName, inviter, gameId) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -14,7 +14,7 @@ async function sendInviteEmail(email, gameName, inviter) {
     from: process.env.EMAIL_USER,
     to: email,
     subject: `Game Invitation: ${gameName}`,
-    text: `${inviter} has invited you to join the game: ${gameName} on UMASS Sports App.`
+    text: `${inviter} has invited you to join the game: ${gameName} (ID: ${gameId}) on UMASS Sports App.`
   });
 }
 
@@ -32,7 +32,7 @@ exports.createGame = async (req, res) => {
     await game.save();
     // Notify invited players
     for (const email of inviteEmails || []) {
-      await sendInviteEmail(email, name, req.user.name || 'A user');
+      await sendInviteEmail(email, name, req.user.name || 'A user', game._id);
     }
     res.status(201).json({ msg: 'Game created and invitations sent.', game });
   } catch (err) {
@@ -164,8 +164,8 @@ exports.inviteUser = async (req, res) => {
     game.invitations.push({ email: userToInvite.email });
     await game.save();
 
-    // Send email notification
-    await sendInviteEmail(userToInvite.email, game.name, req.user.name || 'A user');
+    // Send email notification with game ID
+    await sendInviteEmail(userToInvite.email, game.name, req.user.name || 'A user', game._id);
     
     res.json({ msg: 'Invitation sent successfully', game });
   } catch (err) {
@@ -199,7 +199,7 @@ exports.searchGames = async (req, res) => {
       dateTo,
       page = 1,
       pageSize = 20
-    } = req.query;
+    } = req.body;
     const query = {};
     if (name) query.name = { $regex: name, $options: 'i' };
     if (sportType) query.sportType = sportType;
@@ -234,6 +234,45 @@ exports.searchGames = async (req, res) => {
     dbQuery = dbQuery.skip(skip).limit(parseInt(pageSize));
     const games = await dbQuery.exec();
     res.json({ games });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.editGame = async (req, res) => {
+  try {
+    const { gameId, name, sportType, status } = req.body;
+    const game = await Game.findById(gameId);
+    if (!game) return res.status(404).json({ msg: 'Game not found' });
+    if (game.creator.toString() !== req.user.id) return res.status(403).json({ msg: 'Only the creator can edit this game' });
+
+    if (name) game.name = name;
+    if (sportType) game.sportType = sportType;
+    if (status) game.status = status;
+
+    await game.save();
+    res.json({ msg: 'Game updated successfully', game });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getMyInvitations = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const { inviteStatus } = req.query; // optional filter
+    const match = { 'invitations.email': user.email };
+    if (inviteStatus) match['invitations.status'] = inviteStatus;
+    const games = await Game.find(match).select('name sportType invitations creator createdAt').populate('creator');
+    // Filter invitations to only those for this user
+    const invitations = games.flatMap(g =>
+      g.invitations
+        .filter(inv => inv.email === user.email && (!inviteStatus || inv.status === inviteStatus))
+        .map(inv => ({ gameId: g._id, gameName: g.name, sportType: g.sportType, status: inv.status, invitedAt: inv.invitedAt, creator: g.creator }))
+    );
+    res.json({ invitations });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');

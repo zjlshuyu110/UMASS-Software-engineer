@@ -7,6 +7,10 @@ const gameController = require('../controllers/gameController');
 // @desc    Create a new game and invite players
 router.post('/create', auth, gameController.createGame);
 
+// @route   POST /api/games/edit
+// @desc    Edit a game (creator only)
+router.post('/edit', auth, gameController.editGame);
+
 // @route   POST /api/games/accept
 // @desc    Accept a game invitation
 router.post('/accept', auth, gameController.acceptInvite);
@@ -27,9 +31,13 @@ router.post('/remove', auth, gameController.removePlayer);
 // @desc    Get all games for the user
 router.get('/my', auth, gameController.getUserGames);
 
-// @route   GET /api/games/search
-// @desc    Comprehensive search for games with various filters (includes playerUsername, creatorUsername, invitedUsername)
-router.get('/search', gameController.searchGames);
+// @route   POST /api/games/search
+// @desc    Comprehensive search for games via body JSON
+router.post('/search', gameController.searchGames);
+
+// @route   GET /api/games/invitations
+// @desc    Get all invitations for the current user (optional ?inviteStatus=pending)
+router.get('/invitations', auth, gameController.getMyInvitations);
 
 // @route   POST /api/games/invite
 // @desc    Invite a user to a game (creator only)
