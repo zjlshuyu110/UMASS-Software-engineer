@@ -3,11 +3,6 @@
 ## Project Overview
 This is a mobile app that allows UMass students to host, search for, and participate in sports teams and competitions. Our app aims to streamlines sports game organization at UMass (communication, scheduling, basic stats, etc). The frontend is built with React Native to support both iOS and Android. The backend is built with Node.js, Express, MongoDB, and follows the MVC pattern.
 
-## Prerequisites
-1. Have an iOS or Android emulator
-   * iOS: Follow expo's official documentation for [iOS Simulator](https://docs.expo.dev/workflow/ios-simulator/)
-   * Android: Follow expo's official documentation for [Android Emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-
 ## Backend Setup
 1. Clone the repo and install dependencies:
    ```bash
@@ -23,18 +18,6 @@ This is a mobile app that allows UMass students to host, search for, and partici
    ```bash
    npm run dev
    ```
-
-## Frontend Setup
-1. Clone the repo and install dependencies:
-   ```bash
-   npm install
-   ```
-2. Launch development server:
-   ```bash
-   npx expo start
-   ```
-4. Follow the terminal instructions to start the emulator/simulator, press `a` for Android emulator and `i` for iOS simulator.
-5. Alternatively, install the Expo Go app on your phone and scan the QR code in the terminal after launching the development server.
 
 ## API Endpoints
 ### Auth
