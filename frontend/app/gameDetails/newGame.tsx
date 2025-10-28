@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import { SPORT_TYPES } from "@/constants/game";
 import { Game } from "@/src/models/Game";
 import { useAppSelector } from "@/hooks/reduxHooks";
+import { createGameAsync } from "@/src/apiCalls/game";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -84,7 +85,7 @@ export default function NewGameForm() {
   };
 
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate form
     if (!state.name.trim()) {
       setErrorMsg("Please enter a game name");
@@ -115,6 +116,13 @@ export default function NewGameForm() {
       createdAt: new Date(),
       location: state.location,
     };
+
+    // Create game using API
+    try {
+      var response = await createGameAsync({ name: state.name, sportType: state.sportType, inviteEmails: state.invitedEmails })
+    } catch (error: any) {
+      setErrorMsg(error);
+    }
 
     Alert.alert("Success", "Game created successfully!", [
       { text: "OK", onPress: () => router.back() }
@@ -152,7 +160,7 @@ export default function NewGameForm() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Sport Type *</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sportScrollView}>
-              {SPORT_TYPES.map((sport: string) => (
+              {Object.values(SPORT_TYPES).map((sport: string) => (
                 <TouchableOpacity
                   key={sport}
                   style={[
