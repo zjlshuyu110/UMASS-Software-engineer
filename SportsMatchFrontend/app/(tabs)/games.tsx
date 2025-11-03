@@ -19,6 +19,7 @@ export default function GamesView() {
         players: JSON.stringify(game.players),
         maxPlayers: game.maxPlayers.toString(),
         status: game.status,
+        location: game.location,
         startAt: game.startAt.toISOString(),
         createdAt: game.createdAt.toISOString(),
       },
