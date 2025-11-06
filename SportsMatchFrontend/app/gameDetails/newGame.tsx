@@ -132,154 +132,152 @@ export default function NewGameForm() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12 }}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
           className="flex-1 w-full"
         >
-          <Ionicons name="arrow-back" size={30} color="#881c1c" />
+          <Ionicons name="arrow-back" size={28} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Create New Game</Text>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.formContainer}>
-          {/* Game Name */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Game Name *</Text>
-            <TextInput
-              style={styles.textInput}
-              value={state.name}
-              onChangeText={(value) => handleInputChange('name', value)}
-              placeholder="Enter game name"
-              placeholderTextColor={Colors.gray500}
-            />
-          </View>
+        {/* Game Name */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Game Name *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={state.name}
+            onChangeText={(value) => handleInputChange('name', value)}
+            placeholder="Enter game name"
+            placeholderTextColor={Colors.gray500}
+          />
+        </View>
 
-          {/* Sport Type */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sport Type *</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sportScrollView}>
-              {SPORT_TYPES.map((sport: string) => (
-                <TouchableOpacity
-                  key={sport}
-                  style={[
-                    styles.sportButton,
-                    state.sportType === sport && styles.sportButtonSelected
-                  ]}
-                  onPress={() => handleInputChange('sportType', sport)}
-                >
-                  <Text style={[
-                    styles.sportButtonText,
-                    state.sportType === sport && styles.sportButtonTextSelected
-                  ]}>
-                    {sport}
-                  </Text>
-                </TouchableOpacity>
+        {/* Sport Type */}
+        <View style={{ ...styles.inputGroup, marginHorizontal: -12 }}>
+          <Text style={{...styles.label, paddingHorizontal: 12}}>Sport Type *</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sportScrollView}>
+            {SPORT_TYPES.map((sport: string) => (
+              <TouchableOpacity
+                key={sport}
+                style={[
+                  styles.sportButton,
+                  state.sportType === sport && styles.sportButtonSelected
+                ]}
+                onPress={() => handleInputChange('sportType', sport)}
+              >
+                <Text style={[
+                  styles.sportButtonText,
+                  state.sportType === sport && styles.sportButtonTextSelected
+                ]}>
+                  {sport}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Max Players */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Maximum Players *</Text>
+          <View style={styles.numberInputContainer}>
+            <TouchableOpacity
+              style={styles.numberButton}
+              onPress={() => handleInputChange('maxPlayers', Math.max(2, state.maxPlayers - 1))}
+            >
+              <Ionicons name="remove" size={20} color={Colors.gray700} />
+            </TouchableOpacity>
+            <Text style={styles.numberText}>{state.maxPlayers}</Text>
+            <TouchableOpacity
+              style={styles.numberButton}
+              onPress={() => handleInputChange('maxPlayers', state.maxPlayers + 1)}
+            >
+              <Ionicons name="add" size={20} color={Colors.gray700} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Start Date & Time */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Start Date & Time *</Text>
+          <TextInput
+            style={styles.textInput}
+            value={state.startAt}
+            onChangeText={(value) => handleInputChange('startAt', value)}
+            placeholder="YYYY-MM-DD HH:MM"
+            placeholderTextColor={Colors.gray500}
+          />
+        </View>
+
+        {/* Location */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Location</Text>
+          <TextInput
+            style={styles.textInput}
+            value={state.location}
+            onChangeText={(value) => handleInputChange('location', value)}
+            placeholder="Enter location"
+            placeholderTextColor={Colors.gray500}
+          />
+        </View>
+
+        {/* Invite Players */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Invite Players (Optional)</Text>
+          <View style={styles.emailInputContainer}>
+            <TextInput
+              style={styles.emailInput}
+              value={emailInput}
+              onChangeText={setEmailInput}
+              placeholder="Enter email address"
+              placeholderTextColor={Colors.gray500}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              style={styles.addEmailButton}
+              onPress={handleAddEmail}
+            >
+              <Ionicons name="add" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Invited Emails List */}
+          {state.invitedEmails.length > 0 && (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.emailsScrollView}
+            >
+              {state.invitedEmails.map((email, index) => (
+                <View key={index} style={styles.emailChip}>
+                  <Text style={styles.emailChipText}>{email}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveEmail(email)}
+                    style={styles.removeEmailButton}
+                  >
+                    <Ionicons name="close" size={16} color={Colors.gray600} />
+                  </TouchableOpacity>
+                </View>
               ))}
             </ScrollView>
-          </View>
-
-          {/* Max Players */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Maximum Players *</Text>
-            <View style={styles.numberInputContainer}>
-              <TouchableOpacity
-                style={styles.numberButton}
-                onPress={() => handleInputChange('maxPlayers', Math.max(2, state.maxPlayers - 1))}
-              >
-                <Ionicons name="remove" size={20} color={Colors.gray700} />
-              </TouchableOpacity>
-              <Text style={styles.numberText}>{state.maxPlayers}</Text>
-              <TouchableOpacity
-                style={styles.numberButton}
-                onPress={() => handleInputChange('maxPlayers', state.maxPlayers + 1)}
-              >
-                <Ionicons name="add" size={20} color={Colors.gray700} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Start Date & Time */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Start Date & Time *</Text>
-            <TextInput
-              style={styles.textInput}
-              value={state.startAt}
-              onChangeText={(value) => handleInputChange('startAt', value)}
-              placeholder="YYYY-MM-DD HH:MM"
-              placeholderTextColor={Colors.gray500}
-            />
-          </View>
-
-          {/* Location */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Location</Text>
-            <TextInput
-              style={styles.textInput}
-              value={state.location}
-              onChangeText={(value) => handleInputChange('location', value)}
-              placeholder="Enter location"
-              placeholderTextColor={Colors.gray500}
-            />
-          </View>
-
-          {/* Invite Players */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Invite Players (Optional)</Text>
-            <View style={styles.emailInputContainer}>
-              <TextInput
-                style={styles.emailInput}
-                value={emailInput}
-                onChangeText={setEmailInput}
-                placeholder="Enter email address"
-                placeholderTextColor={Colors.gray500}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity
-                style={styles.addEmailButton}
-                onPress={handleAddEmail}
-              >
-                <Ionicons name="add" size={20} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-            
-            {/* Invited Emails List */}
-            {state.invitedEmails.length > 0 && (
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                style={styles.emailsScrollView}
-              >
-                {state.invitedEmails.map((email, index) => (
-                  <View key={index} style={styles.emailChip}>
-                    <Text style={styles.emailChipText}>{email}</Text>
-                    <TouchableOpacity
-                      onPress={() => handleRemoveEmail(email)}
-                      style={styles.removeEmailButton}
-                    >
-                      <Ionicons name="close" size={16} color={Colors.gray600} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </ScrollView>
-            )}
-          </View>
-
-          <Text style={styles.errormsg}>
-            {errorMsg}
-          </Text>
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.submitButtonText}>Create Game</Text>
-          </TouchableOpacity>
+          )}
         </View>
+
+        <Text style={styles.errormsg}>
+          {errorMsg}
+        </Text>
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleSubmit}
+        >
+          <Text style={styles.submitButtonText}>Create Game</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -291,23 +289,19 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: Colors.primaryWhite,
+    backgroundColor: 'white',
   },
   headerText: {
-    ...Typescale.headlineL,
-    color: "#881c1c",
-    textAlign: 'center',
+    ...Typescale.headlineS,
   },
   backButton: {
-    marginTop: 4,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    marginRight: 12,
   },
   scrollView: {
     flex: 1,
+    paddingHorizontal: 12
   },
   formContainer: {
-    padding: 16,
   },
   inputGroup: {
     marginBottom: 20,
@@ -325,7 +319,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     color: Colors.gray900,
-    backgroundColor: Colors.primaryWhite,
+    backgroundColor: Colors.gray100,
   },
   textArea: {
     height: 100,
@@ -333,6 +327,7 @@ const styles = StyleSheet.create({
   },
   sportScrollView: {
     marginTop: 8,
+    paddingHorizontal: 12
   },
   sportButton: {
     paddingHorizontal: 16,
@@ -341,7 +336,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.gray300,
-    backgroundColor: Colors.primaryWhite,
+    backgroundColor: Colors.gray100,
   },
   sportButtonSelected: {
     backgroundColor: Colors.primary,
@@ -434,7 +429,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     color: Colors.gray900,
-    backgroundColor: Colors.primaryWhite,
+    backgroundColor: Colors.gray100,
     marginRight: 8,
   },
   addEmailButton: {

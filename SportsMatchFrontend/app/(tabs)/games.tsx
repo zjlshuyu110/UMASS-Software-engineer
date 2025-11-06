@@ -34,7 +34,7 @@ export default function GamesView() {
           style={styles.addButton}
           onPress={() => router.push("/gameDetails/newGame")}
         >
-          <Ionicons name="add" size={24} color="white" />
+          <Ionicons name="add" size={28} color="white" />
         </TouchableOpacity>
       </View>
       <View>
