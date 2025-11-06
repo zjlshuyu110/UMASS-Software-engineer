@@ -5,6 +5,7 @@ import { HapticTab } from '@/src/components/haptic-tab';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -20,28 +21,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Discover',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="square.grid.2x2.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="grid" color={color} />,
         }}
       />
       <Tabs.Screen
         name="games"
         options={{
           title: 'Games',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='basketball.fill' color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name='basketball' color={color} />,
         }} 
       />
       <Tabs.Screen 
         name="inbox"
         options={{
           title: 'Inbox',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='message.fill' color={color}/>,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name='chatbubble' color={color}/>,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="person" color={color} />,
         }}
       />
 
