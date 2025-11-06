@@ -2,7 +2,7 @@ import { Text, View, StyleSheet, ScrollView, Touchable, TouchableOpacity } from 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typescale } from "@/constants/theme";
 import { Game } from "@/src/models/Game";
-import GameCard from "@/src/components/discover/game-card";
+import GameCard from "@/src/components/ui/game-card";
 import React from "react";
 import { dateTemps } from "@/src/utils/date-utils";
 import { router } from "expo-router";
@@ -28,15 +28,56 @@ export default function GamesView() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerText}>Games</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <Text style={styles.headerText}>Games</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push("/gameDetails/newGame")}
+        >
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
       <View>
         <Text
-          style={{
-            marginTop: 16,
-            ...Typescale.bodyM,
-            color: "#000000",
-            ...Typescale.titleL,
-          }}
+          style={styles.sectionText}
+        >
+          My Games
+        </Text>
+        <View>
+          <ScrollView
+            horizontal={true}
+            style={styles.scrollContainer}
+            showsHorizontalScrollIndicator={false}
+          >
+            {gamesToday
+              .reduce((rows: Game[][], _, index) => {
+                if (index % 2 === 0)
+                  rows.push(gamesToday.slice(index, index + 2));
+                return rows;
+              }, [])
+              .map((pair, rowIndex) => (
+                <View
+                  key={rowIndex}
+                  style={{ flexDirection: "column", rowGap: 12 }}
+                >
+                  {pair.map((game, colIndex) => (
+                    <GameCard
+                      key={colIndex}
+                      game={game}
+                      style={styles.card}
+                      onPress={() => {
+                        navigateToGameDetails(game);
+                      }}
+                    />
+                  ))}
+                </View>
+              ))}
+          </ScrollView>
+        </View>
+      </View>
+      <View>
+        <Text
+          style={styles.sectionText}
         >
           Upcoming Games
         </Text>
@@ -73,64 +114,7 @@ export default function GamesView() {
         </View>
       </View>
       <View>
-        <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text
-            style={{
-              color: "#000000",
-              ...Typescale.titleL,
-            }}
-          >
-            My Games
-          </Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => router.push("/gameDetails/newGame")}
-          >
-            <Text style={styles.addButtonText}>New</Text>
-            <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-        <View>
-          <ScrollView
-            horizontal={true}
-            style={styles.scrollContainer}
-            showsHorizontalScrollIndicator={false}
-          >
-            {gamesToday
-              .reduce((rows: Game[][], _, index) => {
-                if (index % 2 === 0)
-                  rows.push(gamesToday.slice(index, index + 2));
-                return rows;
-              }, [])
-              .map((pair, rowIndex) => (
-                <View
-                  key={rowIndex}
-                  style={{ flexDirection: "column", rowGap: 12 }}
-                >
-                  {pair.map((game, colIndex) => (
-                    <GameCard
-                      key={colIndex}
-                      game={game}
-                      style={styles.card}
-                      onPress={() => {
-                        navigateToGameDetails(game);
-                      }}
-                    />
-                  ))}
-                </View>
-              ))}
-          </ScrollView>
-        </View>
-      </View>
-      <View>
-        <Text
-          style={{
-            marginTop: 16,
-            ...Typescale.bodyM,
-            color: "#000000",
-            ...Typescale.titleL,
-          }}
-        >
+        <Text style={styles.sectionText}>
           Pending Games
         </Text>
         <View>
@@ -158,12 +142,13 @@ export default function GamesView() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
+    paddingHorizontal: 12,
+    backgroundColor: 'white',
+    flex: 1
   },
   headerText: {
     ...Typescale.headlineL,
     marginBottom: 12,
-    color: "#881c1c",
   },
   heading: {
     fontSize: 40,
@@ -172,35 +157,27 @@ const styles = StyleSheet.create({
   card: {
     marginRight: 12,
     width: 300,
-    shadowColor: "#000",
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    backgroundColor: Colors.gray100,
-    borderWidth: 0,
   },
   scrollContainer: {
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginHorizontal: -12,
+    marginBottom: 16
   },
   addButton: {
-    backgroundColor: "#881c1c",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 8,
+    padding: 2,
+    borderRadius: 120,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    backgroundColor: Colors.primaryLight,
   },
-  addButtonText: {
-    color: "#FFFFFF",
-    marginRight: 6,
-    fontSize: 14,
-    fontWeight: "600",
+  sectionText: {
+    ...Typescale.titleL, 
+    marginBottom: 8
   },
 });
 const gamesToday: Game[] = [

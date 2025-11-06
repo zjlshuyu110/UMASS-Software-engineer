@@ -2,7 +2,7 @@ import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image,
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
-import GameCard from '@/src/components/discover/game-card';
+import GameCard from '@/src/components/ui/game-card';
 import { SFSymbol } from 'expo-symbols';
 import { Game } from '@/src/models/Game';
 import { router } from 'expo-router';
