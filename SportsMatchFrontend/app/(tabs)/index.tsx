@@ -2,11 +2,12 @@ import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image,
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
-import GameCard from '@/src/components/discover/game-card';
+import GameCard from '@/src/components/ui/game-card';
 import { SFSymbol } from 'expo-symbols';
 import { Game } from '@/src/models/Game';
 import { router } from 'expo-router';
-
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/theme';
 
 export default function DiscoverView() {
   function navigateToGameDetails(game: Game) {
@@ -30,7 +31,8 @@ export default function DiscoverView() {
             <Text style={styles.headerText}>Discover</Text>
             <TouchableOpacity style={styles.searchBar}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <IconSymbol size={12} color={'black'} name='magnifyingglass' style={{ marginRight: 4 }}></IconSymbol>
+                <Ionicons size={12} color={'black'} name='search' style={{ marginRight: 4 }} />
+                <Ionicons size={12} src="/assets/images/racket.svg"/>
                 <Text>Search for games</Text>
               </View>
             </TouchableOpacity>
@@ -39,12 +41,12 @@ export default function DiscoverView() {
             <View style={styles.sportCategoriesContainer}>
                 {sports.map((sport, index) => (
                   <TouchableOpacity key={index} style={styles.categoryCard}>
-                    <IconSymbol size={40} name={sport.icon} color={'#B23434'}></IconSymbol>
+                    <Image style={{width:40, height:40}} source={sport.icon}/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>{sport.name}</Text>
                   </TouchableOpacity>
                 ))}
                   <TouchableOpacity style={styles.categoryCard}>
-                    <IconSymbol size={40} name="square.grid.2x2.fill" color={'#B23434'}></IconSymbol>
+                    <Ionicons size={40} color={Colors.primaryLight} name='grid'/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>More</Text>
                   </TouchableOpacity>
             </View>
@@ -59,14 +61,14 @@ export default function DiscoverView() {
     )
 }
 
-const sports: { name: string; icon: SFSymbol }[] = [
-  { name: 'Basketball', icon: 'figure.basketball' },
-  { name: 'Volleyball', icon: 'figure.volleyball' },
-  { name: 'Pickleball', icon: 'figure.pickleball' },
-  { name: 'Soccer', icon: 'figure.indoor.soccer' },
-  { name: 'Football', icon: 'figure.american.football' },
-  { name: 'Badminton', icon: 'figure.badminton' },
-  { name: 'Tennis', icon: 'figure.tennis' },
+const sports: { name: string; icon: any }[] = [
+  { name: 'Basketball', icon: require('../../assets/images/basketball.png') },
+  { name: 'Volleyball', icon: require('../../assets/images/volleyball.png') },
+  { name: 'Baseball', icon: require('../../assets/images/baseball.png')  },
+  { name: 'Soccer', icon: require('../../assets/images/soccer.png') },
+  { name: 'Football', icon: require('../../assets/images/rugby.png') },
+  { name: 'Badminton', icon: require('../../assets/images/badminton.png') },
+  { name: 'Tennis', icon: require('../../assets/images/tennis.png') },
 ]
 
 const dateTemps = [8, 9, 10, 11, 12, 13, 14, 15].map((hour) => {
