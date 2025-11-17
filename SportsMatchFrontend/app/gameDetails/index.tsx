@@ -27,17 +27,17 @@ export default function GameDetails() {
   const myGame = true;
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12 }}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
           className="flex-1 w-full"
         >
-          <Ionicons name="arrow-back" size={30} color="#881c1c" />
+          <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Details</Text>
       </View>
-      <View style={{ margin: 12 }}>
+      <ScrollView style={styles.scrollView}>
         <View style={{ marginBottom: 12 }}>
           <Text
             style={{
@@ -48,101 +48,49 @@ export default function GameDetails() {
           >
             {game.name}
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              borderRadius: 8,
-              padding: 8,
-              shadowColor: Colors.gray800,
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.3,
-              shadowRadius: 4,
-              elevation: 2,
-              backgroundColor: Colors.gray100,
-            }}
-          >
-            <View style={{ margin: 6 }}>
-              <View style={styles.detailRow}>
-                <Ionicons
-                  size={Typescale.labelXXL.fontSize}
-                  name="flame"
-                  color={Colors.gray800}
-                  style={{ marginTop: 4 }}
-                ></Ionicons>
-                <Text style={styles.gameDetail}>{game.sportType}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Ionicons
-                  size={Typescale.labelXXL.fontSize}
-                  name="location"
-                  color={Colors.gray800}
-                  style={{ marginTop: 4 }}
-                ></Ionicons>
-                <Text style={styles.gameDetail}>{game.location}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Ionicons
-                  size={Typescale.labelXXL.fontSize}
-                  name="time-outline"
-                  color={Colors.gray800}
-                  style={{ marginTop: 4 }}
-                ></Ionicons>
-                <Text style={styles.gameDetail}>{formatISOToDayDate(game.startAt as string)}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Ionicons
-                  size={Typescale.labelXXL.fontSize}
-                  name="person"
-                  color={Colors.gray800}
-                  style={{ marginTop: 4 }}
-                ></Ionicons>
-                <Text style={styles.gameDetail}>
-                  {game.players.length} / {game.maxPlayers}
-                </Text>
-              </View>
+          <View style={styles.cardContainer}>
+            <View style={styles.detailRow}>
+              <Ionicons
+                size={Typescale.labelXXL.fontSize}
+                name="flame"
+                color={Colors.gray700}
+                
+              ></Ionicons>
+              <Text style={styles.gameDetail}>{game.sportType}</Text>
             </View>
-          </View>
-        </View>
-        <View
-          style={{
-            height: screenHeight * 0.5,
-            backgroundColor: Colors.gray100,
-            borderRadius: 8,
-            shadowColor: Colors.gray800,
-            shadowOffset: {
-              width: 2,
-              height: 2,
-            },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 2,
-          }}
-        >
-          <View style={{ margin: 12 }}>
-            <Text
-              style={{
-                ...Typescale.headlineM,
-                color: Colors.gray900,
-                marginBottom: 8,
-              }}
-            >
-              Players
-            </Text>
-            <Text style={{ ...Typescale.bodyM, marginBottom: 8 }}>
-              Players who have joined and their skill levels.
-            </Text>
-            <ScrollView style={{ maxHeight: screenHeight * 0.31 }}>
-              {people.map((player: any, index: number) => (
-                <GamePlayerCard key={index} player={player} />
-              ))}
-            </ScrollView>
+            <View style={styles.detailRow}>
+              <Ionicons
+                size={Typescale.labelXXL.fontSize}
+                name="location"
+                color={Colors.gray700}
+                style={{ marginTop: 4 }}
+              ></Ionicons>
+              <Text style={styles.gameDetail}>{game.location}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons
+                size={Typescale.labelXXL.fontSize}
+                name="time"
+                color={Colors.gray700}
+                style={{ marginTop: 4 }}
+              ></Ionicons>
+              <Text style={styles.gameDetail}>{formatISOToDayDate(game.startAt as string)}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons
+                size={Typescale.labelXXL.fontSize}
+                name="person"
+                color={Colors.gray700}
+                style={{ marginTop: 4 }}
+              ></Ionicons>
+              <Text style={styles.gameDetail}>
+                {game.players.length} / {game.maxPlayers}
+              </Text>
+            </View>
             <TouchableOpacity
               style={{
                 marginTop: 12,
-                padding: 12,
+                padding: 8,
                 backgroundColor: myGame ? Colors.gray700 : Colors.primary,
                 borderRadius: 8,
                 alignItems: "center",
@@ -150,38 +98,74 @@ export default function GameDetails() {
               disabled={myGame}
             >
               <Text style={styles.addPlayerButton}>Request to Join</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+        </View>
+        <View style={styles.cardContainer}>
+          <Text
+            style={{
+              ...Typescale.headlineM,
+              color: Colors.gray900,
+              marginBottom: 8,
+            }}
+          >
+            Players
+          </Text>
+          <Text style={{ ...Typescale.bodyM, marginBottom: 8 }}>
+            Players who have joined and their skill levels.
+          </Text>
+          <View>
+            {people.map((player: any, index: number) => (
+              <GamePlayerCard key={index} player={player} />
+            ))}
           </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
+    flex: 1,
+    backgroundColor: Colors.gray200
   },
   headerText: {
-    ...Typescale.headlineL,
-    color: "#881c1c",
+    ...Typescale.titleM,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 12,
+  },
+  cardContainer: {
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    shadowColor: Colors.gray800,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
+    backgroundColor: Colors.gray100,
   },
   detailRow: {
     flexDirection: "row",
     columnGap: 8,
-    marginTop: 4,
+    marginBottom: 4,
+    alignItems: 'center'
   },
   backButton: {
-    marginTop: 4,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    marginRight: 12,
   },
   gameDetail: {
-    ...Typescale.labelXXL,
-    color: Colors.gray900,
+    ...Typescale.labelL,
+    color: Colors.gray800,
   },
   addPlayerButton: {
-    ...Typescale.labelXXL,
+    ...Typescale.labelL,
     color: Colors.primaryWhite,
   },
 });

@@ -138,7 +138,7 @@ export default function NewGameForm() {
           onPress={handleBack}
           className="flex-1 w-full"
         >
-          <Ionicons name="arrow-back" size={28} />
+          <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Create New Game</Text>
       </View>
@@ -289,10 +289,10 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Colors.gray200,
   },
   headerText: {
-    ...Typescale.headlineS,
+    ...Typescale.titleM,
   },
   backButton: {
     marginRight: 12,
