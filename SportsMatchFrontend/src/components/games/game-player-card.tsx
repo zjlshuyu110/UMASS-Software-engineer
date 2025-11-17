@@ -50,7 +50,7 @@ export default function GamePlayerCard({ player }: { player: Player }) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
