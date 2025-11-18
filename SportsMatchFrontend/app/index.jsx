@@ -22,7 +22,7 @@ export default function Login() {
   useEffect(() => {
     async function checkIfTokenExists() {
       if (await dispatch(loadToken()).unwrap()) {
-        router.push("../(tabs)");
+        router.replace("/(tabs)/discover");
       }
     }
     checkIfTokenExists();

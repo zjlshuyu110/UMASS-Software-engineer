@@ -12,7 +12,7 @@ export default function SignUpFormPage() {
   useEffect(() => {
     async function checkIfTokenExists() {
       if (await dispatch(loadToken()).unwrap()) {
-        router.push("../(tabs)");
+        router.push("../profile/editProfile");
       }
     }
     checkIfTokenExists();
@@ -68,7 +68,7 @@ export default function SignUpFormPage() {
       .then((response) => {
         setErrorMessage("");
         dispatch(login({ email, token: response as string }));
-        router.push("../(tabs)");
+        router.push("../profile/editProfile");
         // Handle successful OTP verification (e.g., navigate to the next screen)
       })
       .catch((error) => {

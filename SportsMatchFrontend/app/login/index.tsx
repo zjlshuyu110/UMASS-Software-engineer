@@ -23,7 +23,7 @@ export default function LoginForm() {
   useEffect(() => {
     async function checkIfTokenExists() {
       if (await dispatch(loadToken()).unwrap()) {
-        router.push("../(tabs)");
+        router.push("../(tabs)/discover");
       }
     }
     checkIfTokenExists();
@@ -38,7 +38,7 @@ export default function LoginForm() {
       loginApi(email, password)
         .then((response) => {
           dispatch(login({ email, token: response as string }));
-          router.push("../(tabs)");
+          router.replace("/(tabs)/discover");
         })
         .catch((error) => {
           if (error.message === "Invalid credentials") {

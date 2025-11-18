@@ -12,16 +12,18 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="discover"
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarActiveTintColor: "#8C1C1C"
       }}>
       <Tabs.Screen
-        name="index"
+        name="discover"
         options={{
           title: 'Discover',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="grid" color={color} />,
+          
         }}
       />
       <Tabs.Screen
