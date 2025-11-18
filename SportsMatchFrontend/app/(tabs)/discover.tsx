@@ -8,8 +8,27 @@ import { Game } from '@/src/models/Game';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
+import { useCallback } from 'react';
+import { useAppDispatch } from '@/hooks/reduxHooks';
+import { loadToken } from '@/src/redux/slices/userSlice';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function DiscoverView() {
+  const dispatch = useAppDispatch();
+
+  useFocusEffect(
+    useCallback(() => {
+      async function checkIfTokenExists() {
+        const token = await dispatch(loadToken()).unwrap();
+        if (!token) {
+          router.push("/");
+        }
+      }
+      checkIfTokenExists();
+    }, [dispatch])
+  );
+
+
   function navigateToGameDetails(game: Game) {
       router.push({
         pathname: "/gameDetails" as any,

@@ -40,6 +40,8 @@ const userSlice = createSlice({
         });
         builder.addCase(logout.fulfilled, (state) => {
             state.token = null;
+            state.email = null;
+            state.name = null;
         });
     },
 });
