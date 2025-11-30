@@ -26,6 +26,16 @@ const UserSchema = new mongoose.Schema({
   },
   otpExpires: {
     type: Date
+  },
+  display_picture: {
+    type: String
+  },
+  age: {
+    type: Number
+  },
+  sport_interests: {
+    type: Map,
+    of: Number
   }
 }, { timestamps: true });
 

@@ -1,32 +1,67 @@
-import { Text, View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native'
+import { Text, View, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale, Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { logout } from '@/src/redux/slices/userSlice';
 import { useAppDispatch } from '@/hooks/reduxHooks';
+import { getProfileAsync, checkProfileAsync, ProfileData } from '@/src/apiCalls/profile';
+import { getSkillLevelLabel } from '@/constants/skillLevels';
 
 export default function ProfileView() {
   const dispatch = useAppDispatch();
-  const sample_profile = {
-    display_picture: "https://res.cloudinary.com/dp0ayty6p/image/upload/v1763485298/samples/istockphoto-1682296067-612x612.jpg",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    age: 28,
-    // sports with skill levels
-    sport_interests: { "Soccer": 2, "Basketball": 3, "Tennis": 1 },
-  }
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [profile, setProfile] = useState(sample_profile);
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const checkResult = await checkProfileAsync();
+      if (checkResult.hasProfile) {
+        const profileData = await getProfileAsync();
+        setProfile(profileData);
+      } else {
+        // No profile exists, redirect to create
+        Alert.alert(
+          "No Profile",
+          "You don't have a profile yet. Would you like to create one?",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Create Profile",
+              onPress: () => {
+                router.push({
+                  pathname: "/profile/editProfile" as any,
+                });
+              }
+            }
+          ]
+        );
+      }
+    } catch (error: any) {
+      console.error('Error loading profile:', error);
+      setError(error.message || "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleEditProfile = () => {
-    router.push({
-      pathname: "/profile/editProfile" as any,
-      params: {
-        edit: 'true',
-        profileData: JSON.stringify(profile),
-      },
-    });
+    if (profile) {
+      router.push({
+        pathname: "/profile/editProfile" as any,
+        params: {
+          edit: 'true',
+        },
+      });
+    }
   }
 
   const handleLogout = async () => {
@@ -34,9 +69,43 @@ export default function ProfileView() {
     router.replace("/");
   }
 
-  const getSkillLevelText = (level: number) => {
-    const levels = ["Beginner", "Intermediate", "Advanced", "Expert"];
-    return levels[level - 1] || "Unknown";
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={48} color={Colors.gray600} />
+          <Text style={styles.errorText}>{error || "No profile found"}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={loadProfile}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => {
+              router.push({
+                pathname: "/profile/editProfile" as any,
+              });
+            }}
+          >
+            <Text style={styles.createButtonText}>Create Profile</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -81,14 +150,18 @@ export default function ProfileView() {
         {/* Sport Interests Field */}
         <View style={styles.fieldContainer}>
           <Text style={styles.fieldLabel}>Sport Interests</Text>
-          <View style={styles.sportsContainer}>
-            {Object.entries(profile.sport_interests).map(([sport, level]) => (
-              <View key={sport} style={styles.sportTag}>
-                <Text style={styles.sportName}>{sport}</Text>
-                <Text style={styles.sportLevel}>{getSkillLevelText(level)}</Text>
-              </View>
-            ))}
-          </View>
+          {Object.keys(profile.sport_interests).length > 0 ? (
+            <View style={styles.sportsContainer}>
+              {Object.entries(profile.sport_interests).map(([sport, level]) => (
+                <View key={sport} style={styles.sportTag}>
+                  <Text style={styles.sportName}>{sport}</Text>
+                  <Text style={styles.sportLevel}>{getSkillLevelLabel(level)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.noSportsText}>No sport interests added yet</Text>
+          )}
         </View>
 
         {/* Edit Profile Button */}
@@ -222,5 +295,59 @@ const styles = StyleSheet.create({
     ...Typescale.titleM,
     color: Colors.primaryDark,
     fontWeight: '600'
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    ...Typescale.bodyM,
+    color: Colors.gray700,
+    marginTop: 12,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorText: {
+    ...Typescale.bodyL,
+    color: Colors.gray700,
+    marginTop: 12,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  retryButtonText: {
+    ...Typescale.titleM,
+    color: 'white',
+    fontWeight: '600',
+  },
+  createButton: {
+    backgroundColor: Colors.primaryWhite,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.primaryLight,
+  },
+  createButtonText: {
+    ...Typescale.titleM,
+    color: Colors.primaryDark,
+    fontWeight: '600',
+  },
+  noSportsText: {
+    ...Typescale.bodyM,
+    color: Colors.gray600,
+    fontStyle: 'italic',
+    marginTop: 8,
   }
 });
