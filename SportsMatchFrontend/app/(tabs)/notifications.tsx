@@ -1,23 +1,80 @@
-import { Text, View, StyleSheet, ScrollView } from 'react-native'
+import { Text, View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale, Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Notification } from '@/src/models/Notification';
+import { useMemo, useState } from 'react';
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
+type FilterState = "none" | "unread" | "read"
 
 export default function NotificationsView() {
-    return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-          <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
-            <Text style={styles.headerText}>Notifications</Text>
-            {/* Notifications */}
-            <View>
-              {notifications.map((noti, index) => <NotificationCard key={index} notification={noti} />)}
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-    );
+  const [selectedFilter, setSelectedFilter] = useState<FilterState>("none");
+
+  const handleFilterPress = (pressed: FilterState) => {
+    setSelectedFilter((prev) => {
+      if (prev === "none") return pressed;
+      return prev === pressed ? "none" : pressed;
+    });
+  };
+
+  const filteredNotifications = useMemo(
+    () =>
+      notifications.filter((noti) => {
+        return (
+          selectedFilter === "none" ||
+          (selectedFilter === "unread" && noti.unread) ||
+          (selectedFilter === "read" && !noti.unread)
+        );
+      }),
+    [selectedFilter]
+  );
+
+  return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
+          <Text style={styles.headerText}>Notifications</Text>
+          <View style={{flexDirection: 'row', paddingHorizontal: 12, gap: 6}}>
+            <TouchableOpacity
+              onPress={() => handleFilterPress("unread")}>
+              <View style={[
+                styles.filterChip,
+                selectedFilter === "unread" && styles.filterChipActive
+              ]}>
+                <Text style={[
+                  styles.filterText,
+                  selectedFilter === "unread" && styles.filterTextActive
+                ]}>Unread</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleFilterPress("read")}>
+              <View style={[
+                styles.filterChip,
+                selectedFilter === "read" && styles.filterChipActive
+              ]}>
+                <Text style={[
+                  styles.filterText,
+                  selectedFilter === "read" && styles.filterTextActive
+                ]}>Read</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          {/* Notifications */}
+          <View>
+            {filteredNotifications.map((noti, id) => {
+              const shouldShow =
+                selectedFilter === "none" ||
+                (selectedFilter === "unread" && noti.unread) ||
+                (selectedFilter === "read" && !noti.unread);
+              
+              return shouldShow ? <NotificationCard key={id} notification={noti}/> : null
+            })}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+  );
 }
 
 function NotificationCard({ notification }: {notification: Notification} ) {
@@ -74,6 +131,23 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1, 
     paddingBottom: 12 
+  },
+  filterChip: {
+    backgroundColor: Colors.gray300,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 50,
+  },
+  filterChipActive: {
+    backgroundColor: Colors.primaryWhite,
+    borderWidth: 0.5,
+    borderColor: Colors.primaryLight
+  },
+  filterText: {
+    ...Typescale.labelM,
+  },
+  filterTextActive: {
+    color: Colors.primaryLight
   },
   notificationContainer: {
     flexDirection: 'row',
