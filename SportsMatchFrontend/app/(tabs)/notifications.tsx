@@ -63,14 +63,7 @@ export default function NotificationsView() {
           </View>
           {/* Notifications */}
           <View>
-            {filteredNotifications.map((noti, id) => {
-              const shouldShow =
-                selectedFilter === "none" ||
-                (selectedFilter === "unread" && noti.unread) ||
-                (selectedFilter === "read" && !noti.unread);
-              
-              return shouldShow ? <NotificationCard key={id} notification={noti}/> : null
-            })}
+            {filteredNotifications.map((noti, id) => <NotificationCard key={id} notification={noti}/>)}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -78,7 +71,7 @@ export default function NotificationsView() {
 }
 
 function NotificationCard({ notification }: {notification: Notification} ) {
-  const { bg, icon, iconName } = typeStyles[notification.type]
+  const { bg, icon, iconName } = notificationTypeStyles[notification.type]
 
   return (
     <View style={{flex: 1}}>
@@ -97,7 +90,7 @@ function NotificationCard({ notification }: {notification: Notification} ) {
   );
 }
 
-const typeStyles: {[type: string]: {bg: string, icon: string, iconName: IconName}} = {
+const notificationTypeStyles: {[type: string]: {bg: string, icon: string, iconName: IconName}} = {
   accept: {
     bg: "#ecfccb",
     icon: "#84cc16",
