@@ -34,10 +34,10 @@ export default function TabLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="inbox"
+        name="notifications"
         options={{
-          title: 'Inbox',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name='chatbubble' color={color}/>,
+          title: 'Notifications',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name='notifications' color={color}/>,
         }}
       />
       <Tabs.Screen
