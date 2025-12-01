@@ -27,7 +27,7 @@ export default function GameDetails() {
   const myGame = true;
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12, paddingTop: 12 }}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
@@ -172,15 +172,15 @@ const styles = StyleSheet.create({
 
 const people = [
   { name: "Alice", age: 30, skillLevel: 1 },
-  { name: "Bob", age: 25, skillLevel: 0 },
+  { name: "Bob", age: 25, skillLevel: 1 },
   { name: "Charlie", age: 35, skillLevel: 2 },
-  { name: "David", age: 40, skillLevel: 3 },
+  { name: "David", age: 40, skillLevel: 4 },
   { name: "Eve", age: 28, skillLevel: 1 },
   { name: "Frank", age: 33, skillLevel: 2 },
-  { name: "Grace", age: 27, skillLevel: 0 },
+  { name: "Grace", age: 27, skillLevel: 1 },
   { name: "Heidi", age: 29, skillLevel: 1 },
   { name: "Ivan", age: 31, skillLevel: 3 },
   { name: "Judy", age: 26, skillLevel: 2 },
   { name: "Kate", age: 32, skillLevel: 1 },
-  { name: "Leo", age: 34, skillLevel: 0 },
+  { name: "Leo", age: 34, skillLevel: 1 },
 ];

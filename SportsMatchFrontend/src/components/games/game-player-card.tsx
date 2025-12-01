@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
-import React, { JSX } from "react";
-import { Colors } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Colors, Typescale } from "@/constants/theme";
+import { getSkillLevelLabel } from "@/constants/skillLevels";
 
 interface Player {
   name: string;
@@ -9,41 +9,12 @@ interface Player {
   skillLevel: number;
 }
 
-function getSkillLevelLabel(level: number) {
-  const max = 5;
-  const empty = Math.max(0, Math.min(max, Math.floor(level + 1)));
-  const filled = max - empty;
-  const icons: JSX.Element[] = [];
-
-  for (let i = 0; i < empty; i++) {
-    icons.push(
-      <Ionicons
-        key={`filled-${i}`}
-        name="square"
-        style={{ color: Colors.primary, marginRight: 4 }}
-      />
-    );
-  }
-
-  for (let i = 0; i < filled; i++) {
-    icons.push(
-      <Ionicons
-        key={`empty-${i}`}
-        name="square-outline"
-        style={{ color: Colors.primary, marginRight: 4 }}
-      />
-    );
-  }
-
-  return <View style={{ flexDirection: "row" }}>{icons}</View>;
-}
-
 export default function GamePlayerCard({ player }: { player: Player }) {
   return (
     <View style={styles.container}>
       <Text style={styles.playerName}>{player.name}</Text>
       <Text style={styles.playerAge}>{player.age} years</Text>
-      {getSkillLevelLabel(player.skillLevel)}
+      <Text style={styles.skillLevel}>{getSkillLevelLabel(player.skillLevel)}</Text>
     </View>
   );
 }
@@ -64,5 +35,11 @@ const styles = StyleSheet.create({
   playerAge: {
     width: 60,
     fontSize: 14,
+  },
+  skillLevel: {
+    ...Typescale.bodyS,
+    color: Colors.gray700,
+    minWidth: 100,
+    textAlign: 'right',
   },
 });

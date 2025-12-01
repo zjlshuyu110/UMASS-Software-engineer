@@ -11,18 +11,13 @@ import {
   Alert,
   Image,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SPORT_TYPES } from "@/constants/game";
-
-interface ProfileData {
-  display_picture?: string;
-  name: string;
-  email: string;
-  age: number;
-  sport_interests: { [key: string]: number };
-}
+import { getProfileAsync, createProfileAsync, updateProfileAsync, checkProfileAsync, ProfileData } from "@/src/apiCalls/profile";
+import { SKILL_LEVELS, getSkillLevelLabel } from "@/constants/skillLevels";
 
 interface FormState {
   display_picture: string;
@@ -40,13 +35,6 @@ interface FormAction {
   level?: number;
   profileData?: ProfileData;
 }
-
-const SKILL_LEVELS = [
-  { value: 1, label: "Beginner" },
-  { value: 2, label: "Intermediate" },
-  { value: 3, label: "Advanced" },
-  { value: 4, label: "Expert" },
-];
 
 const formReducer = (state: FormState, action: FormAction): FormState => {
   switch (action.type) {
@@ -95,10 +83,12 @@ export default function EditProfile() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [selectedSportForDropdown, setSelectedSportForDropdown] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const isEditMode = params.edit === 'true' && params.profileData;
+  const isEditMode = params.edit === 'true';
 
   const [state, dispatch] = useReducer(formReducer, {
     display_picture: '',
@@ -109,16 +99,34 @@ export default function EditProfile() {
   });
 
   useEffect(() => {
-    if (isEditMode && params.profileData) {
+    const loadProfile = async () => {
       try {
-        const profileData: ProfileData = JSON.parse(params.profileData as string);
-        dispatch({ type: 'INIT_FROM_PARAMS', profileData });
-      } catch (error) {
-        console.error('Error parsing profile data:', error);
-        setErrorMsg('Error loading profile data');
+        setInitialLoading(true);
+        if (isEditMode) {
+          // Load existing profile from API
+          const profileData = await getProfileAsync();
+          dispatch({ type: 'INIT_FROM_PARAMS', profileData });
+        } else {
+          // Check if profile exists, if so load it
+          const checkResult = await checkProfileAsync();
+          if (checkResult.hasProfile) {
+            const profileData = await getProfileAsync();
+            dispatch({ type: 'INIT_FROM_PARAMS', profileData });
+          }
+        }
+      } catch (error: any) {
+        console.error('Error loading profile:', error);
+        if (isEditMode) {
+          setErrorMsg('Error loading profile data');
+        }
+        // If not in edit mode and profile doesn't exist, that's fine - user can create one
+      } finally {
+        setInitialLoading(false);
       }
-    }
-  }, [isEditMode, params.profileData]);
+    };
+
+    loadProfile();
+  }, [isEditMode]);
 
   const handleInputChange = (field: keyof FormState, value: any) => {
     dispatch({ type: 'UPDATE_FIELD', field, value });
@@ -151,57 +159,75 @@ export default function EditProfile() {
 
   const handleSubmit = async () => {
     setErrorMsg("");
+    setLoading(true);
 
     // Validate form
     if (!state.name.trim()) {
       setErrorMsg("Please enter your name");
-      return;
-    }
-    if (!state.email.trim()) {
-      setErrorMsg("Please enter your email");
-      return;
-    }
-    if (!state.email.includes('@')) {
-      setErrorMsg("Please enter a valid email address");
+      setLoading(false);
       return;
     }
     if (!state.age.trim()) {
       setErrorMsg("Please enter your age");
+      setLoading(false);
       return;
     }
     const ageNum = parseInt(state.age);
     if (isNaN(ageNum) || ageNum < 1 || ageNum > 150) {
       setErrorMsg("Please enter a valid age");
+      setLoading(false);
       return;
     }
 
-    // TODO: Implement API call to save/update profile
-    const profileData: ProfileData = {
-      display_picture: state.display_picture,
-      name: state.name.trim(),
-      email: state.email.trim(),
-      age: ageNum,
-      sport_interests: state.sport_interests,
-    };
-
     try {
-      // await saveProfileAsync(profileData);
-      Alert.alert(
-        "Success",
-        isEditMode ? "Profile updated successfully!" : "Profile created successfully!",
-        [{ text: "OK", onPress: () => router.replace("/(tabs)/profile") }]
-      );
+      const profilePayload: {
+        display_picture?: string;
+        name?: string;
+        age: number;
+        sport_interests?: { [key: string]: number };
+      } = {
+        age: ageNum,
+      };
+
+      if (state.display_picture) {
+        profilePayload.display_picture = state.display_picture;
+      }
+      if (state.name.trim()) {
+        profilePayload.name = state.name.trim();
+      }
+      if (Object.keys(state.sport_interests).length > 0) {
+        profilePayload.sport_interests = state.sport_interests;
+      }
+
+      if (isEditMode) {
+        await updateProfileAsync(profilePayload);
+      } else {
+        await createProfileAsync(profilePayload);
+      }
+
+      // Navigate directly to profile page after successful save
+      router.replace("/(tabs)/profile");
     } catch (error: any) {
-      setErrorMsg(isEditMode ? "Error updating profile" : "Error creating profile");
+      console.error('Profile save error:', error);
+      setErrorMsg(error.message || (isEditMode ? "Error updating profile" : "Error creating profile"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getSkillLevelLabel = (level: number) => {
-    const skill = SKILL_LEVELS.find(s => s.value === level);
-    return skill ? skill.label : "Unknown";
-  };
 
   const availableSports = SPORT_TYPES.filter(sport => !state.sport_interests[sport]);
+
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -258,18 +284,15 @@ export default function EditProfile() {
           />
         </View>
 
-        {/* Email */}
+        {/* Email - Read-only (from authenticated user) */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email *</Text>
+          <Text style={styles.label}>Email</Text>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, styles.readOnlyInput]}
             value={state.email}
-            onChangeText={(value) => handleInputChange('email', value)}
-            placeholder="Enter your email"
+            placeholder="Email (from your account)"
             placeholderTextColor={Colors.gray500}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
+            editable={false}
           />
         </View>
 
@@ -345,12 +368,17 @@ export default function EditProfile() {
 
         {/* Submit Button */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
           onPress={handleSubmit}
+          disabled={loading}
         >
-          <Text style={styles.submitButtonText}>
-            {isEditMode ? "Update Profile" : "Create Profile"}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color={Colors.primaryWhite} />
+          ) : (
+            <Text style={styles.submitButtonText}>
+              {isEditMode ? "Update Profile" : "Create Profile"}
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
@@ -420,6 +448,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.gray900,
     backgroundColor: Colors.gray100,
+  },
+  readOnlyInput: {
+    backgroundColor: Colors.gray200,
+    color: Colors.gray600,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    ...Typescale.bodyM,
+    color: Colors.gray700,
+    marginTop: 12,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
   profilePictureContainer: {
     alignItems: 'center',
