@@ -119,7 +119,14 @@ export default function NewGameForm() {
 
     // Create game using API
     try {
-      var response = await createGameAsync({ name: state.name, sportType: state.sportType, inviteEmails: state.invitedEmails })
+      var response = await createGameAsync({ 
+        name: state.name, 
+        sportType: state.sportType, 
+        inviteEmails: state.invitedEmails,
+        maxPlayers: state.maxPlayers,
+        location: state.location,
+        startAt: state.startAt
+      })
     } catch (error: any) {
       setErrorMsg("Error creating game");
       return;
@@ -132,7 +139,7 @@ export default function NewGameForm() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12, paddingTop: 12 }}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={handleBack}
@@ -158,7 +165,7 @@ export default function NewGameForm() {
 
         {/* Sport Type */}
         <View style={{ ...styles.inputGroup, marginHorizontal: -12 }}>
-          <Text style={{...styles.label, paddingHorizontal: 12}}>Sport Type *</Text>
+          <Text style={{ ...styles.label, paddingHorizontal: 12 }}>Sport Type *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sportScrollView}>
             {SPORT_TYPES.map((sport: string) => (
               <TouchableOpacity
@@ -245,11 +252,11 @@ export default function NewGameForm() {
               <Ionicons name="add" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          
+
           {/* Invited Emails List */}
           {state.invitedEmails.length > 0 && (
-            <ScrollView 
-              horizontal 
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.emailsScrollView}
             >
@@ -284,8 +291,8 @@ export default function NewGameForm() {
 }
 
 const styles = StyleSheet.create({
-  errormsg:{
-    color:"red"
+  errormsg: {
+    color: "red"
   },
   container: {
     flex: 1,

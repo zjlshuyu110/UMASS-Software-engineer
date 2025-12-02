@@ -1,6 +1,6 @@
 import { Colors, Typescale } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,23 +8,147 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GamePlayerCard from "@/src/components/games/game-player-card";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {formatISOToDayDate} from "@/src/utils/date-utils"
+import {formatISOToDayDate} from "@/src/utils/date-utils";
+import { getGameByIdAsync, sendRequestAsync } from "@/src/apiCalls/game";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
+interface GameData {
+  _id: string;
+  name: string;
+  sportType: string;
+  location: string;
+  startAt: string;
+  maxPlayers: number;
+  players: any[];
+  userRole?: 'creator' | 'player' | 'invited' | 'requester';
+}
+
+interface PlayerData {
+  name: string;
+  age: number;
+  skillLevel: number;
+}
+
 export default function GameDetails() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const gameId = params.gameId as string;
+  const initialUserRole = params.userRole as string;
 
-  const game = { ...useLocalSearchParams() };
+  const [game, setGame] = useState<GameData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [requesting, setRequesting] = useState(false);
+
+  useEffect(() => {
+    if (gameId) {
+      fetchGameData();
+    }
+  }, [gameId]);
+
+  const fetchGameData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getGameByIdAsync(gameId);
+      setGame(response.game);
+    } catch (err) {
+      console.error('Error fetching game:', err);
+      setError('Failed to load game details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBack = () => {
     router.back();
   };
-  const myGame = true;
+
+  const handleRequestToJoin = async () => {
+    try {
+      setRequesting(true);
+      await sendRequestAsync(gameId);
+      Alert.alert("Success", "Request sent successfully!", [
+        { text: "OK", onPress: () => fetchGameData() }
+      ]);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to send request");
+    } finally {
+      setRequesting(false);
+    }
+  };
+
+  // Transform players data with skill levels
+  const transformPlayers = (): PlayerData[] => {
+    if (!game || !game.players) return [];
+    
+    return game.players.map((player: any) => {
+      // Check if player has the sport in their interests
+      const sportInterests = player.sport_interests || {};
+      const skillLevel = sportInterests[game.sportType] || 1; // Default to Beginner (1)
+      
+      return {
+        name: player.name || 'Unknown',
+        age: player.age || 0,
+        skillLevel: skillLevel
+      };
+    });
+  };
+
+  const players = transformPlayers();
+  const userRole = game?.userRole || initialUserRole;
+  const isJoined = userRole === 'creator' || userRole === 'player';
+  const isRequestPending = userRole === 'requester';
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12, paddingTop: 12 }}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            className="flex-1 w-full"
+          >
+            <Ionicons name="arrow-back" size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Details</Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={Colors.primaryLight} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !game) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12, paddingTop: 12 }}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            className="flex-1 w-full"
+          >
+            <Ionicons name="arrow-back" size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Details</Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: 'red', marginBottom: 16 }}>{error || 'Game not found'}</Text>
+          <TouchableOpacity onPress={fetchGameData}>
+            <Text style={{ color: Colors.primaryLight }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12, paddingTop: 12 }}>
@@ -54,7 +178,6 @@ export default function GameDetails() {
                 size={Typescale.labelXXL.fontSize}
                 name="flame"
                 color={Colors.gray700}
-                
               ></Ionicons>
               <Text style={styles.gameDetail}>{game.sportType}</Text>
             </View>
@@ -74,7 +197,7 @@ export default function GameDetails() {
                 color={Colors.gray700}
                 style={{ marginTop: 4 }}
               ></Ionicons>
-              <Text style={styles.gameDetail}>{formatISOToDayDate(game.startAt as string)}</Text>
+              <Text style={styles.gameDetail}>{formatISOToDayDate(game.startAt)}</Text>
             </View>
             <View style={styles.detailRow}>
               <Ionicons
@@ -91,15 +214,23 @@ export default function GameDetails() {
               style={{
                 marginTop: 12,
                 padding: 8,
-                backgroundColor: myGame ? Colors.gray700 : Colors.primary,
+                backgroundColor: isJoined || isRequestPending ? Colors.gray700 : Colors.primary,
                 borderRadius: 8,
                 alignItems: "center",
+                opacity: requesting ? 0.6 : 1,
               }}
-              disabled={myGame}
+              disabled={isJoined || isRequestPending || requesting}
+              onPress={handleRequestToJoin}
             >
-              <Text style={styles.addPlayerButton}>Request to Join</Text>
-          </TouchableOpacity>
-        </View>
+              {requesting ? (
+                <ActivityIndicator size="small" color={Colors.primaryWhite} />
+              ) : (
+                <Text style={styles.addPlayerButton}>
+                  {isJoined ? 'Already Joined' : isRequestPending ? 'Request Pending' : 'Request to Join'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.cardContainer}>
           <Text
@@ -115,9 +246,15 @@ export default function GameDetails() {
             Players who have joined and their skill levels.
           </Text>
           <View>
-            {people.map((player: any, index: number) => (
-              <GamePlayerCard key={index} player={player} />
-            ))}
+            {players.length === 0 ? (
+              <Text style={{ ...Typescale.bodyM, color: Colors.gray600, textAlign: 'center', paddingVertical: 16 }}>
+                No players joined yet
+              </Text>
+            ) : (
+              players.map((player: PlayerData, index: number) => (
+                <GamePlayerCard key={index} player={player} />
+              ))
+            )}
           </View>
         </View>
       </ScrollView>
@@ -169,18 +306,3 @@ const styles = StyleSheet.create({
     color: Colors.primaryWhite,
   },
 });
-
-const people = [
-  { name: "Alice", age: 30, skillLevel: 1 },
-  { name: "Bob", age: 25, skillLevel: 1 },
-  { name: "Charlie", age: 35, skillLevel: 2 },
-  { name: "David", age: 40, skillLevel: 4 },
-  { name: "Eve", age: 28, skillLevel: 1 },
-  { name: "Frank", age: 33, skillLevel: 2 },
-  { name: "Grace", age: 27, skillLevel: 1 },
-  { name: "Heidi", age: 29, skillLevel: 1 },
-  { name: "Ivan", age: 31, skillLevel: 3 },
-  { name: "Judy", age: 26, skillLevel: 2 },
-  { name: "Kate", age: 32, skillLevel: 1 },
-  { name: "Leo", age: 34, skillLevel: 1 },
-];
