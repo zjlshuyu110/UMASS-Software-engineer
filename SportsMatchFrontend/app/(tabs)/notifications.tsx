@@ -92,18 +92,18 @@ function NotificationCard({ notification }: {notification: Notification} ) {
 
 const notificationTypeStyles: {[type: string]: {bg: string, icon: string, iconName: IconName}} = {
   accept: {
-    bg: "#ecfccb",
-    icon: "#84cc16",
+    bg: Colors.green100,
+    icon: Colors.green400,
     iconName: "checkmark"
   },
   reject: {
-    bg: "#fee2e2",
-    icon: "#ef4444",
+    bg: Colors.red100,
+    icon: Colors.red400,
     iconName: "close"
   },
   pending: {
-    bg: "#fef9c3",
-    icon: "#facc15",
+    bg: Colors.yellow100,
+    icon: Colors.yellow400,
     iconName: "ellipsis-horizontal"
   }
 }
