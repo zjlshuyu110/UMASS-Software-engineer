@@ -3,7 +3,7 @@ import React from "react";
 import { Colors, Typescale } from "@/constants/theme";
 import { getSkillLevelLabel } from "@/constants/skillLevels";
 
-interface Player {
+export interface Player {
   name: string;
   age: number;
   skillLevel: number;

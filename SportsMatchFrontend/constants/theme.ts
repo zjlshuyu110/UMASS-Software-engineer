@@ -27,6 +27,15 @@ const gray800 = '#505050';
 const gray900 = '#3A3A3A';
 const gray950 = '#262626';
 
+const red100 = '#fee2e2';
+const red400 = '#f87171'
+
+const yellow100 = '#fef9c3';
+const yellow400 = '#facc15';
+
+const green100 = '#ecfccb';
+const green400 = '#a3e635'
+
 export const Colors = {
   light: {
     text: '#11181C',
@@ -61,6 +70,12 @@ export const Colors = {
   gray800: gray800,
   gray900: gray900,
   gray950: gray950,
+  red100: red100,
+  red400: red400,
+  yellow100: yellow100,
+  yellow400: yellow400,
+  green100: green100,
+  green400: green400
 };
 
 export const Typescale = StyleSheet.create({
