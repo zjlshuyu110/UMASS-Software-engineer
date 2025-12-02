@@ -258,6 +258,58 @@ exports.getAllRecentGames = async (req, res) => {
   }
 };
 
+exports.getGamesNext24Hours = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const now = new Date();
+    const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    const games = await Game.find({
+      startAt: {
+        $gte: now,
+        $lte: next24Hours
+      },
+      status: { $ne: 'cancelled' }
+    })
+    .populate('creator players')
+    .sort({ startAt: 1 });
+    
+    // Add userRole field to each game based on priority: creator > player > invited > requester
+    const gamesWithRole = games.map(game => {
+      let userRole = null;
+      const gameObj = game.toObject();
+      
+      // Check if user is creator (handle both populated and unpopulated cases)
+      const creatorId = game.creator._id ? game.creator._id.toString() : game.creator.toString();
+      if (creatorId === user._id.toString()) {
+        userRole = 'creator';
+      }
+      // Check if user is a player
+      else if (game.players.some(p => {
+        const playerId = p._id ? p._id.toString() : p.toString();
+        return playerId === user._id.toString();
+      })) {
+        userRole = 'player';
+      }
+      // Check if user has a pending invitation
+      else if (game.invitations.some(i => i.email === user.email && i.status === 'pending')) {
+        userRole = 'invited';
+      }
+      // Check if user has a pending request
+      else if (game.requests.some(r => r.email === user.email && r.status === 'pending')) {
+        userRole = 'requester';
+      }
+      
+      return { ...gameObj, userRole };
+    });
+    
+    res.json({ games: gamesWithRole });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
 exports.sendRequest = async (req, res) => {
   try {
     const { gameId } = req.body;

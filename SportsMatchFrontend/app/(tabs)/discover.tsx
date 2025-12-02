@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, FlatList } from 'react-native'
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, FlatList, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
 import { IconSymbol } from '@/src/components/ui/icon-symbol';
@@ -8,13 +8,65 @@ import { Game } from '@/src/models/Game';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import { loadToken } from '@/src/redux/slices/userSlice';
 import { useFocusEffect } from '@react-navigation/native';
+import { getGamesSoonAsync } from '@/src/apiCalls/game';
 
 export default function DiscoverView() {
   const dispatch = useAppDispatch();
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getGamesSoonAsync();
+      
+      // Transform backend games to match Game interface
+      const transformedGames: Game[] = response.games.map((game: any) => {
+        // Handle creator - could be object or string
+        const creatorName = typeof game.creator === 'object' && game.creator.name 
+          ? game.creator.name 
+          : typeof game.creator === 'string' 
+          ? game.creator 
+          : 'Unknown';
+        
+        // Handle players - could be array of objects or strings
+        const playersList = Array.isArray(game.players) 
+          ? game.players.map((p: any) => typeof p === 'object' && p.name ? p.name : String(p))
+          : [];
+        
+        // Handle dates
+        const startAt = game.startAt ? new Date(game.startAt) : new Date();
+        const createdAt = game.createdAt ? new Date(game.createdAt) : new Date();
+        
+        return {
+          _id: game._id || game.id || '',
+          name: game.name || '',
+          sportType: game.sportType || '',
+          creator: creatorName,
+          players: playersList,
+          maxPlayers: game.maxPlayers || 0,
+          status: game.status || 'open',
+          startAt: startAt,
+          createdAt: createdAt,
+          location: game.location || '',
+          userRole: game.userRole || undefined,
+        };
+      });
+      
+      setGames(transformedGames);
+    } catch (err) {
+      console.error('Error fetching games:', err);
+      setError('Failed to load games');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -22,25 +74,20 @@ export default function DiscoverView() {
         const token = await dispatch(loadToken()).unwrap();
         if (!token) {
           router.push("/");
+        } else {
+          fetchGames();
         }
       }
       checkIfTokenExists();
-    }, [dispatch])
+    }, [dispatch, fetchGames])
   );
-
 
   function navigateToGameDetails(game: Game) {
       router.push({
         pathname: "/gameDetails" as any,
         params: {
-          name: game.name,
-          sportType: game.sportType,
-          creator: game.creator,
-          players: JSON.stringify(game.players),
-          maxPlayers: game.maxPlayers.toString(),
-          status: game.status,
-          startAt: game.startAt.toISOString(),
-          createdAt: game.createdAt.toISOString(),
+          gameId: game._id || '',
+          userRole: game.userRole || '',
         },
       });
     }
@@ -70,11 +117,25 @@ export default function DiscoverView() {
                   </TouchableOpacity>
             </View>
 
-            {/* Games Happening Today */}
-            <Text style={styles.sectionText}>Happening Today</Text>
-            <View style={{ rowGap: 8 }}>
-              {gamesToday.map((game, index) => <GameCard key={index} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
-            </View>
+            {/* Games Happening Soon */}
+            <Text style={styles.sectionText}>Happening Soon</Text>
+            {loading ? (
+              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={Colors.primaryLight} />
+              </View>
+            ) : error ? (
+              <View style={styles.emptyBanner}>
+                <Text style={styles.emptyText}>{error}</Text>
+              </View>
+            ) : games.length === 0 ? (
+              <View style={styles.emptyBanner}>
+                <Text style={styles.emptyText}>No games happening soon</Text>
+              </View>
+            ) : (
+              <View style={{ rowGap: 8 }}>
+                {games.map((game, index) => <GameCard key={index} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
     )
@@ -89,48 +150,6 @@ const sports: { name: string; icon: any }[] = [
   { name: 'Badminton', icon: require('../../assets/images/badminton.png') },
   { name: 'Tennis', icon: require('../../assets/images/tennis.png') },
 ]
-
-const dateTemps = [8, 9, 10, 11, 12, 13, 14, 15].map((hour) => {
-  const date = new Date()
-  date.setHours(hour)
-  return date
-})
-
-const gamesToday: Game[] = [
-  {
-    name: "Basketball Tournament: Winner Gets $1000!",
-    sportType: "Basketball",
-    creator: "Nam Nguyen",
-    players: [],
-    maxPlayers: 24,
-    status: "open",
-    startAt: dateTemps[0],
-    createdAt: dateTemps[0],
-    location: "Mill valley Basketball court"
-  },
-  {
-    name: "Chill Pickleball Game For Beginners",
-    sportType: "Pickleball",
-    creator: "Sahil Kamath",
-    players: [],
-    maxPlayers: 8,
-    status: "open",
-    startAt: dateTemps[1],
-    createdAt: dateTemps[1],
-    location:"Somewhere in Hadley"
-  },
-  {
-    name: "Volleyball Practice",
-    sportType: "Volleyball",
-    creator: "Kenneth Rodrigues",
-    players: [],
-    maxPlayers: 18,
-    status: "open",
-    startAt: dateTemps[2],
-    createdAt: dateTemps[2],
-    location: "Recreation centre"
-  },
-];
 
 const styles = StyleSheet.create({
   container: {
@@ -174,5 +193,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, 
     paddingVertical: 12, 
     borderRadius: 12
-  }
+  },
+  emptyBanner: {
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    marginHorizontal: 6,
+    marginBottom: 16,
+    backgroundColor: Colors.gray100 || '#f5f5f5',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    ...Typescale.bodyM,
+    color: Colors.gray600 || '#666',
+    textAlign: 'center',
+  },
 });
