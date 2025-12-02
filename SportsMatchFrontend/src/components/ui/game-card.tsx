@@ -3,7 +3,6 @@ import { Typescale, Colors } from '@/constants/theme';
 import { Game } from '@/src/models/Game';
 import { Ionicons } from '@expo/vector-icons';
 
-const dateTimeTemp = new Date()
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const formatter = new Intl.NumberFormat('en-US', {
   minimumIntegerDigits: 2,
@@ -17,13 +16,14 @@ type GameCardProps = {
 }
 
 export default function GameCard({ game, style = {}, onPress = () => {} }: GameCardProps) {
+    const gameDate = new Date(game.startAt);
     return (
         <TouchableOpacity onPress={onPress} >
             <View style={[styles.container, style]}>
                 <View style={styles.dateCol}>
-                    <Text style={styles.dateSecondary}>{daysOfWeek[dateTimeTemp.getDay()]}</Text>
-                    <Text style={styles.datePrimary}>{formatter.format(dateTimeTemp.getMonth())}/{formatter.format(dateTimeTemp.getDate())}</Text>
-                    <Text style={styles.dateSecondary}>{formatter.format(game.startAt.getHours())}:{formatter.format(game.startAt.getMinutes())}</Text>
+                    <Text style={styles.dateSecondary}>{daysOfWeek[gameDate.getDay()]}</Text>
+                    <Text style={styles.datePrimary}>{formatter.format(gameDate.getMonth() + 1)}/{formatter.format(gameDate.getDate())}</Text>
+                    <Text style={styles.dateSecondary}>{formatter.format(gameDate.getHours())}:{formatter.format(gameDate.getMinutes())}</Text>
                 </View>
                 <View style={styles.detailCol}>
                     <Text style={styles.gameTitle} numberOfLines={1} ellipsizeMode='tail'>{ game.name }</Text>

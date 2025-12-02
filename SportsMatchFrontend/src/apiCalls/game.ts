@@ -74,3 +74,21 @@ export const sendRequestAsync = async (gameId: string) => {
         throw new Error("Send request failed.")
     }
 }
+
+export const getGamesSoonAsync = async () => {
+    try {
+        const token = await getToken();
+        const response = await axios.get(
+            `${API_URL}/games/soon`, {
+                headers: {
+                    'x-auth-token': token
+                }
+            }
+        )
+        console.log(response.data);
+        return response.data;
+    } catch (error: any) {
+        console.log(error)
+        throw new Error("Get games soon failed.")
+    }
+}
