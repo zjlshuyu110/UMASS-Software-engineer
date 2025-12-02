@@ -214,89 +214,77 @@ export default function GameDetails() {
         <Text style={styles.headerText}>Details</Text>
       </View>
       <ScrollView style={styles.scrollView}>
-        <View style={{ marginBottom: 12 }}>
-          <Text
-            style={{
-              marginBottom: 12,
-              color: "#000000",
-              ...Typescale.headlineL,
-            }}
-          >
-            {game.name}
-          </Text>
-          <View style={styles.cardContainer}>
-            <View style={styles.detailRow}>
-              <Ionicons
-                size={Typescale.labelXXL.fontSize}
-                name="flame"
-                color={Colors.gray700}
-              ></Ionicons>
-              <Text style={styles.gameDetail}>{game.sportType}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons
-                size={Typescale.labelXXL.fontSize}
-                name="location"
-                color={Colors.gray700}
-                style={{ marginTop: 4 }}
-              ></Ionicons>
-              <Text style={styles.gameDetail}>{game.location}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons
-                size={Typescale.labelXXL.fontSize}
-                name="time"
-                color={Colors.gray700}
-                style={{ marginTop: 4 }}
-              ></Ionicons>
-              <Text style={styles.gameDetail}>{formatISOToDayDate(game.startAt)}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons
-                size={Typescale.labelXXL.fontSize}
-                name="person"
-                color={Colors.gray700}
-                style={{ marginTop: 4 }}
-              ></Ionicons>
-              <Text style={styles.gameDetail}>
-                {game.players.length} / {game.maxPlayers}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={{
-                marginTop: 12,
-                padding: 8,
-                backgroundColor: isJoined || isRequestPending ? Colors.gray700 : Colors.primary,
-                borderRadius: 8,
-                alignItems: "center",
-                opacity: requesting ? 0.6 : 1,
-              }}
-              disabled={isJoined || isRequestPending || requesting}
-              onPress={handleRequestToJoin}
-            >
-              {requesting ? (
-                <ActivityIndicator size="small" color={Colors.primaryWhite} />
-              ) : (
-                <Text style={styles.addPlayerButton}>
-                  {isJoined ? 'Already Joined' : isRequestPending ? 'Request Pending' : 'Request to Join'}
-                </Text>
-              )}
-            </TouchableOpacity>
+        <Text
+          style={{
+            marginBottom: 12,
+            color: "#000000",
+            ...Typescale.headlineL,
+          }}
+        >
+          {game.name}
+        </Text>
+        <View style={styles.cardContainer}>
+          <View style={styles.detailRow}>
+            <Ionicons
+              size={Typescale.labelXXL.fontSize}
+              name="flame"
+              color={Colors.gray700}
+            ></Ionicons>
+            <Text style={styles.gameDetail}>{game.sportType}</Text>
           </View>
+          <View style={styles.detailRow}>
+            <Ionicons
+              size={Typescale.labelXXL.fontSize}
+              name="location"
+              color={Colors.gray700}
+              style={{ marginTop: 4 }}
+            ></Ionicons>
+            <Text style={styles.gameDetail}>{game.location}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Ionicons
+              size={Typescale.labelXXL.fontSize}
+              name="time"
+              color={Colors.gray700}
+              style={{ marginTop: 4 }}
+            ></Ionicons>
+            <Text style={styles.gameDetail}>{formatISOToDayDate(game.startAt)}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Ionicons
+              size={Typescale.labelXXL.fontSize}
+              name="person"
+              color={Colors.gray700}
+              style={{ marginTop: 4 }}
+            ></Ionicons>
+            <Text style={styles.gameDetail}>
+              {game.players.length} / {game.maxPlayers}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={{
+              marginTop: 12,
+              padding: 8,
+              backgroundColor: isJoined || isRequestPending ? Colors.gray700 : Colors.primary,
+              borderRadius: 8,
+              alignItems: "center",
+              opacity: requesting ? 0.6 : 1,
+            }}
+            disabled={isJoined || isRequestPending || requesting}
+            onPress={handleRequestToJoin}
+          >
+            {requesting ? (
+              <ActivityIndicator size="small" color={Colors.primaryWhite} />
+            ) : (
+              <Text style={styles.addPlayerButton}>
+                {isJoined ? 'Already Joined' : isRequestPending ? 'Request Pending' : 'Request to Join'}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
         <View style={styles.cardContainer}>
-          <Text
-            style={{
-              ...Typescale.headlineM,
-              color: Colors.gray900,
-              marginBottom: 8,
-            }}
-          >
-            Players
-          </Text>
-          <Text style={{ ...Typescale.bodyM, marginBottom: 8 }}>
-            Players who have joined and their skill levels.
-          </Text>
+          <Text style={styles.cardTitle}>Players</Text>
+          <Text style={styles.cardSubtitle}>Players who have joined and their skill levels.</Text>
           <View>
             {players.length === 0 ? (
               <Text style={{ ...Typescale.bodyM, color: Colors.gray600, textAlign: 'center', paddingVertical: 16 }}>
@@ -327,11 +315,14 @@ export default function GameDetails() {
             : null
           }
         </View>
-        {/* Show delete button if game is by user */}
+        {
+          game.userRole === "creator" ?
           <TouchableOpacity style={styles.deleteButtonContainer}
             onPress={showDeleteAlert}>
               <Text style={styles.deleteGameButton}>Delete Game</Text>
           </TouchableOpacity>
+          : null
+        }
       </ScrollView>
     </SafeAreaView>
   );
@@ -350,6 +341,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   cardContainer: {
+    marginBottom: 16,
     borderRadius: 8,
     paddingVertical: 16,
     paddingHorizontal: 12,
