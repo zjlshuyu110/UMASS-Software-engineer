@@ -10,12 +10,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GamePlayerCard from "@/src/components/games/game-player-card";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {formatISOToDayDate} from "@/src/utils/date-utils";
 import { getGameByIdAsync, sendRequestAsync } from "@/src/apiCalls/game";
+import GameRequestCard from "@/src/components/games/game-request-card";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -46,6 +48,8 @@ export default function GameDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requesting, setRequesting] = useState(false);
+
+  const [showRequests, setShowRequests] = useState(false)
 
   useEffect(() => {
     if (gameId) {
@@ -84,6 +88,54 @@ export default function GameDetails() {
       setRequesting(false);
     }
   };
+
+    const showDeleteAlert = () => {
+    Alert.alert(
+      "Delete game",
+      "Are you sure you want to delete this game?",
+      [
+        { text: "Cancel", style: "cancel"},
+        {
+          text: "Delete", style: "destructive",
+          onPress: () =>{
+            // Handle deleting game
+          }
+        }
+      ]
+    )
+  }
+
+  const showAcceptAlert = () => {
+    Alert.alert(
+      "Accept player",
+      "Adding this player into your game.",
+      [
+        { text: "Cancel", style: "cancel"},
+        {
+          text: "OK",
+          onPress: () =>{
+            // Handle adding player to game
+          }
+        }
+      ]
+    )
+  }
+
+  const showRejectAlert = () => {
+    Alert.alert(
+      "Reject player",
+      "Rejecting this player from your game.",
+      [
+        { text: "Cancel", style: "cancel"},
+        {
+          text: "OK",
+          onPress: () =>{
+            // Handle rejecting player
+          }
+        }
+      ]
+    )
+  }
 
   // Transform players data with skill levels
   const transformPlayers = (): PlayerData[] => {
@@ -257,6 +309,29 @@ export default function GameDetails() {
             )}
           </View>
         </View>
+        <View style={styles.cardContainer}>
+          <TouchableWithoutFeedback onPress={() => setShowRequests(!showRequests)}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={styles.cardTitle}>Requests</Text>
+              <Ionicons name={showRequests ? "chevron-up" : "chevron-down"} size={24} color={Colors.gray700}/>
+            </View>
+          </TouchableWithoutFeedback>
+          {
+            showRequests ?
+            <View>
+              <Text style={styles.cardSubtitle}>Players who are requesting to join your game.</Text> 
+              {requests.map((request, index) => {
+                return <GameRequestCard key={index} player={request} onAccept={showAcceptAlert} onReject={showRejectAlert}/>
+              })}
+            </View> 
+            : null
+          }
+        </View>
+        {/* Show delete button if game is by user */}
+          <TouchableOpacity style={styles.deleteButtonContainer}
+            onPress={showDeleteAlert}>
+              <Text style={styles.deleteGameButton}>Delete Game</Text>
+          </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -288,6 +363,16 @@ const styles = StyleSheet.create({
     elevation: 2,
     backgroundColor: Colors.gray100,
   },
+  cardTitle: {
+    ...Typescale.headlineM,
+    color: Colors.gray900,
+    marginBottom: 8,
+    flex: 1
+  },
+  cardSubtitle: {
+    ...Typescale.bodyM, 
+    marginBottom: 8 
+  },
   detailRow: {
     flexDirection: "row",
     columnGap: 8,
@@ -305,4 +390,26 @@ const styles = StyleSheet.create({
     ...Typescale.labelL,
     color: Colors.primaryWhite,
   },
+  deleteButtonContainer: {
+    marginVertical: 40, 
+    paddingVertical: 8, 
+    backgroundColor: Colors.gray300, 
+    alignItems: 'center', 
+    borderColor: Colors.gray400, 
+    borderWidth: 1.5, 
+    borderRadius: 4
+  },
+  deleteGameButton: {
+    ...Typescale.labelL, 
+    color: "#ef4444"
+  }
 });
+
+const requests = [
+  { name: "Alice", age: 30, skillLevel: 1},
+  { name: "Bob", age: 25, skillLevel: 1 },
+  { name: "Charlie", age: 35, skillLevel: 2 },
+  { name: "David", age: 40, skillLevel: 4 },
+  { name: "Eve", age: 28, skillLevel: 1 },
+  { name: "Frank", age: 33, skillLevel: 2 },
+]
