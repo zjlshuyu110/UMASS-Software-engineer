@@ -27,4 +27,12 @@ router.post('/remove', auth, gameController.removePlayer);
 // @desc    Get all games for the user
 router.get('/my', auth, gameController.getUserGames);
 
+// @route   GET /api/games/all
+// @desc    Get all open games for discovery
+router.get('/all', auth, gameController.getAllGames);
+
+// @route   GET /api/games/search
+// @desc    Search and filter games
+router.get('/search', auth, gameController.searchGames);
+
 module.exports = router;

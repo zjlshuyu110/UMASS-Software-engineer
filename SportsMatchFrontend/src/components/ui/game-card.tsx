@@ -17,13 +17,17 @@ type GameCardProps = {
 }
 
 export default function GameCard({ game, style = {}, onPress = () => {} }: GameCardProps) {
+    // Convert startAt to Date object if it's a string
+    const startDate = game.startAt instanceof Date ? game.startAt : new Date(game.startAt);
+    const displayDate = isNaN(startDate.getTime()) ? new Date() : startDate;
+    
     return (
         <TouchableOpacity onPress={onPress} >
             <View style={[styles.container, style]}>
                 <View style={styles.dateCol}>
-                    <Text style={styles.dateSecondary}>{daysOfWeek[dateTimeTemp.getDay()]}</Text>
-                    <Text style={styles.datePrimary}>{formatter.format(dateTimeTemp.getMonth())}/{formatter.format(dateTimeTemp.getDate())}</Text>
-                    <Text style={styles.dateSecondary}>{formatter.format(game.startAt.getHours())}:{formatter.format(game.startAt.getMinutes())}</Text>
+                    <Text style={styles.dateSecondary}>{daysOfWeek[displayDate.getDay()]}</Text>
+                    <Text style={styles.datePrimary}>{formatter.format(displayDate.getMonth() + 1)}/{formatter.format(displayDate.getDate())}</Text>
+                    <Text style={styles.dateSecondary}>{formatter.format(displayDate.getHours())}:{formatter.format(displayDate.getMinutes())}</Text>
                 </View>
                 <View style={styles.detailCol}>
                     <Text style={styles.gameTitle} numberOfLines={1} ellipsizeMode='tail'>{ game.name }</Text>
@@ -33,11 +37,11 @@ export default function GameCard({ game, style = {}, onPress = () => {} }: GameC
                     </View>
                     <View style={styles.detailRow}>
                         <Ionicons size={12} name='location' color={Colors.gray600}></Ionicons>
-                        <Text style={styles.gameDetail}>{game.location}</Text>
+                        <Text style={styles.gameDetail}>{game.location || 'TBD'}</Text>
                     </View>
                     <View style={styles.detailRow}>
                         <Ionicons size={12} name='person' color={Colors.gray600}></Ionicons>
-                        <Text style={styles.gameDetail}>{ game.players.length } / { game.maxPlayers}</Text>
+                        <Text style={styles.gameDetail}>{ game.players?.length || 0 } / { game.maxPlayers || 10}</Text>
                     </View>
                 </View>
             </View>

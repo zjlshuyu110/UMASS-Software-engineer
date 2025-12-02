@@ -123,3 +123,59 @@ exports.getUserGames = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// @route   GET /api/games/all
+// @desc    Get all open games (for discovery)
+exports.getAllGames = async (req, res) => {
+  try {
+    const games = await Game.find({ status: 'open' })
+      .populate('creator', 'name email')
+      .populate('players', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json({ games });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
+// @route   GET /api/games/search
+// @desc    Search and filter games
+exports.searchGames = async (req, res) => {
+  try {
+    const { sport, name, location, status } = req.query;
+    
+    // Build search query
+    let query = {};
+    
+    // Filter by sport type
+    if (sport && sport !== 'all') {
+      query.sportType = sport;
+    }
+    
+    // Search by game name (case-insensitive)
+    if (name) {
+      query.name = { $regex: name, $options: 'i' };
+    }
+    
+    // Filter by location (case-insensitive)
+    if (location) {
+      query.location = { $regex: location, $options: 'i' };
+    }
+    
+    // Filter by status (default to 'open' games only)
+    query.status = status || 'open';
+    
+    const games = await Game.find(query)
+      .populate('creator', 'name email')
+      .populate('players', 'name email')
+      .sort({ startAt: 1, createdAt: -1 })
+      .limit(100);
+    
+    res.json({ games, count: games.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};

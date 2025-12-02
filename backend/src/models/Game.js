@@ -17,8 +17,11 @@ const GameSchema = new mongoose.Schema({
   sportType: { type: String, enum: SPORTS_ENUM, required: true },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  maxPlayers: { type: Number, default: 10 },
   invitations: [InvitationSchema],
   status: { type: String, enum: ['open', 'in_progress', 'completed', 'cancelled'], default: 'open' },
+  location: { type: String },
+  startAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
