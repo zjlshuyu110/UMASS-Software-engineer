@@ -1,29 +1,127 @@
-import { Text, View, StyleSheet, ScrollView, Touchable, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typescale } from "@/constants/theme";
 import { Game } from "@/src/models/Game";
 import GameCard from "@/src/components/ui/game-card";
-import React from "react";
-import { dateTemps } from "@/src/utils/date-utils";
+import React, { useState, useCallback } from "react";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { getMyGamesAsync } from "@/src/apiCalls/game";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function GamesView() {
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getMyGamesAsync();
+      
+      // Transform backend games to match Game interface
+      const transformedGames: Game[] = response.games.map((game: any) => {
+        // Handle creator - could be object or string
+        const creatorName = typeof game.creator === 'object' && game.creator.name 
+          ? game.creator.name 
+          : typeof game.creator === 'string' 
+          ? game.creator 
+          : 'Unknown';
+        
+        // Handle players - could be array of objects or strings
+        const playersList = Array.isArray(game.players) 
+          ? game.players.map((p: any) => typeof p === 'object' && p.name ? p.name : String(p))
+          : [];
+        
+        // Handle dates
+        const startAt = game.startAt ? new Date(game.startAt) : new Date();
+        const createdAt = game.createdAt ? new Date(game.createdAt) : new Date();
+        
+        return {
+          _id: game._id || game.id || '',
+          name: game.name || '',
+          sportType: game.sportType || '',
+          creator: creatorName,
+          players: playersList,
+          maxPlayers: game.maxPlayers || 0,
+          status: game.status || 'open',
+          startAt: startAt,
+          createdAt: createdAt,
+          location: game.location || '',
+          userRole: game.userRole || undefined,
+        };
+      });
+      
+      setGames(transformedGames);
+    } catch (err) {
+      console.error('Error fetching games:', err);
+      setError('Failed to load games');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchGames();
+    }, [fetchGames])
+  );
+
+  // Filter games by role
+  const createdGames = games.filter(game => game.userRole === 'creator');
+  const acceptedGames = games.filter(game => game.userRole === 'player');
+  const pendingGames = games.filter(game => game.userRole === 'invited' || game.userRole === 'requester');
+
   function navigateToGameDetails(game: Game) {
     router.push({
       pathname: "/gameDetails" as any,
       params: {
-        name: game.name,
-        sportType: game.sportType,
-        creator: game.creator,
-        players: JSON.stringify(game.players),
-        maxPlayers: game.maxPlayers.toString(),
-        status: game.status,
-        location: game.location,
-        startAt: game.startAt.toISOString(),
-        createdAt: game.createdAt.toISOString(),
+        gameId: game._id || '',
+        userRole: game.userRole || '',
       },
     });
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Text style={styles.headerText}>Games</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => router.push("/gameDetails/newGame")}
+          >
+            <Ionicons name="add" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={Colors.primaryLight} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Text style={styles.headerText}>Games</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => router.push("/gameDetails/newGame")}
+          >
+            <Ionicons name="add" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: 'red', marginBottom: 16 }}>{error}</Text>
+          <TouchableOpacity onPress={fetchGames}>
+            <Text style={{ color: Colors.primaryLight }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -41,76 +139,88 @@ export default function GamesView() {
         <Text
           style={styles.sectionText}
         >
-          My Games
+          Created Games
         </Text>
         <View>
-          <ScrollView
-            horizontal={true}
-            style={styles.scrollContainer}
-            showsHorizontalScrollIndicator={false}
-          >
-            {gamesToday
-              .reduce((rows: Game[][], _, index) => {
-                if (index % 2 === 0)
-                  rows.push(gamesToday.slice(index, index + 2));
-                return rows;
-              }, [])
-              .map((pair, rowIndex) => (
-                <View
-                  key={rowIndex}
-                  style={{ flexDirection: "column", rowGap: 12 }}
-                >
-                  {pair.map((game, colIndex) => (
-                    <GameCard
-                      key={colIndex}
-                      game={game}
-                      style={styles.card}
-                      onPress={() => {
-                        navigateToGameDetails(game);
-                      }}
-                    />
-                  ))}
-                </View>
-              ))}
-          </ScrollView>
+          {createdGames.length === 0 ? (
+            <View style={styles.emptyBanner}>
+              <Text style={styles.emptyText}>You haven't created any games yet</Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal={true}
+              style={styles.scrollContainer}
+              showsHorizontalScrollIndicator={false}
+            >
+              {createdGames
+                .reduce((rows: Game[][], _, index) => {
+                  if (index % 2 === 0)
+                    rows.push(createdGames.slice(index, index + 2));
+                  return rows;
+                }, [])
+                .map((pair, rowIndex) => (
+                  <View
+                    key={rowIndex}
+                    style={{ flexDirection: "column", rowGap: 12 }}
+                  >
+                    {pair.map((game, colIndex) => (
+                      <GameCard
+                        key={colIndex}
+                        game={game}
+                        style={styles.card}
+                        onPress={() => {
+                          navigateToGameDetails(game);
+                        }}
+                      />
+                    ))}
+                  </View>
+                ))}
+            </ScrollView>
+          )}
         </View>
       </View>
       <View>
         <Text
           style={styles.sectionText}
         >
-          Upcoming Games
+          Accepted Games
         </Text>
         <View>
-          <ScrollView
-            horizontal={true}
-            style={styles.scrollContainer}
-            showsHorizontalScrollIndicator={false}
-          >
-            {gamesToday
-              .reduce((rows: Game[][], _, index) => {
-                if (index % 2 === 0)
-                  rows.push(gamesToday.slice(index, index + 2));
-                return rows;
-              }, [])
-              .map((pair, rowIndex) => (
-                <View
-                  key={rowIndex}
-                  style={{ flexDirection: "column", rowGap: 12 }}
-                >
-                  {pair.map((game, colIndex) => (
-                    <GameCard
-                      key={colIndex}
-                      game={game}
-                      style={styles.card}
-                      onPress={() => {
-                        navigateToGameDetails(game);
-                      }}
-                    />
-                  ))}
-                </View>
-              ))}
-          </ScrollView>
+          {acceptedGames.length === 0 ? (
+            <View style={styles.emptyBanner}>
+              <Text style={styles.emptyText}>You haven't joined any games yet</Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal={true}
+              style={styles.scrollContainer}
+              showsHorizontalScrollIndicator={false}
+            >
+              {acceptedGames
+                .reduce((rows: Game[][], _, index) => {
+                  if (index % 2 === 0)
+                    rows.push(acceptedGames.slice(index, index + 2));
+                  return rows;
+                }, [])
+                .map((pair, rowIndex) => (
+                  <View
+                    key={rowIndex}
+                    style={{ flexDirection: "column", rowGap: 12 }}
+                  >
+                    {pair.map((game, colIndex) => (
+                      <GameCard
+                        key={colIndex}
+                        game={game}
+                        style={styles.card}
+                        onPress={() => {
+                          navigateToGameDetails(game);
+                        }}
+                      />
+                    ))}
+                  </View>
+                ))}
+            </ScrollView>
+          )}
         </View>
       </View>
       <View>
@@ -118,22 +228,28 @@ export default function GamesView() {
           Pending Games
         </Text>
         <View>
-          <ScrollView
-            horizontal={true}
-            style={styles.scrollContainer}
-            showsHorizontalScrollIndicator={false}
-          >
-            {gamesToday.map((game, colIndex) => (
-              <GameCard
-                key={colIndex}
-                game={game}
-                style={styles.card}
-                onPress={() => {
-                  navigateToGameDetails(game);
-                }}
-              />
-            ))}
-          </ScrollView>
+          {pendingGames.length === 0 ? (
+            <View style={styles.emptyBanner}>
+              <Text style={styles.emptyText}>No pending games</Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal={true}
+              style={styles.scrollContainer}
+              showsHorizontalScrollIndicator={false}
+            >
+              {pendingGames.map((game, colIndex) => (
+                <GameCard
+                  key={colIndex}
+                  game={game}
+                  style={styles.card}
+                  onPress={() => {
+                    navigateToGameDetails(game);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -179,72 +295,19 @@ const styles = StyleSheet.create({
     ...Typescale.titleL, 
     marginBottom: 8
   },
+  emptyBanner: {
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    marginHorizontal: 6,
+    marginBottom: 16,
+    backgroundColor: Colors.gray100 || '#f5f5f5',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    ...Typescale.bodyM,
+    color: Colors.gray600 || '#666',
+    textAlign: 'center',
+  },
 });
-const gamesToday: Game[] = [
-  {
-    name: "Basketball Tournament: Winner Gets $1000!",
-    sportType: "Basketball",
-    creator: "Nam Nguyen",
-    players: [],
-    maxPlayers: 24,
-    status: "open",
-    startAt: dateTemps[0],
-    createdAt: dateTemps[0],
-    location: "Rec Center Terrace"
-  },
-  {
-    name: "Chill Pickleball Game For Beginners",
-    sportType: "Pickleball",
-    creator: "Sahil Kamath",
-    players: [],
-    maxPlayers: 8,
-    status: "open",
-    startAt: dateTemps[1],
-    createdAt: dateTemps[1],
-    location: "Rec Center Terrace"
-  },
-  {
-    name: "Volleyball Practice",
-    sportType: "Volleyball",
-    creator: "Kenneth Rodrigues",
-    players: [],
-    maxPlayers: 18,
-    status: "open",
-    startAt: dateTemps[2],
-    createdAt: dateTemps[2],
-    location: "Rec Center Terrace"
-  },
-  {
-    name: "Soccer Match",
-    sportType: "Soccer",
-    creator: "Emily Johnson",
-    players: [],
-    maxPlayers: 22,
-    status: "open",
-    startAt: dateTemps[3],
-    createdAt: dateTemps[3],
-    location: "Rec Center Terrace"
-  },
-  {
-    name: "Morning Tennis Session",
-    sportType: "Tennis",
-    creator: "Michael Smith",
-    players: [],
-    maxPlayers: 4,
-    status: "open",
-    startAt: dateTemps[4],
-    createdAt: dateTemps[4],
-    location: "Rec Center Terrace"
-  },
-  {
-    name: "Evening Badminton Fun",
-    sportType: "Badminton",
-    creator: "Sarah Lee",
-    players: [],
-    maxPlayers: 4,
-    status: "open",
-    startAt: dateTemps[5],
-    createdAt: dateTemps[5],
-    location: "Rec Center Terrace"
-  },
-];

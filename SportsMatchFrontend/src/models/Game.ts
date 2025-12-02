@@ -1,4 +1,5 @@
 export interface Game {
+    _id?: string;
     name: string;
     sportType: string;
     creator: string;
@@ -8,4 +9,5 @@ export interface Game {
     startAt: Date;
     createdAt: Date;
     location: string;
+    userRole?: 'creator' | 'player' | 'invited' | 'requester';
 }

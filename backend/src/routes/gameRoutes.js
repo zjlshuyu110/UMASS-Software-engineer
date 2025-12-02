@@ -27,4 +27,16 @@ router.post('/remove', auth, gameController.removePlayer);
 // @desc    Get all games for the user
 router.get('/my', auth, gameController.getUserGames);
 
+// @route   GET /api/games/:id
+// @desc    Get a game by ID with populated player data
+router.get('/:id', auth, gameController.getGameById);
+
+// @route   POST /api/games/request
+// @desc    Send a request to join a game
+router.post('/request', auth, gameController.sendRequest);
+
+// @route   POST /api/games/accept-request
+// @desc    Accept a request to join a game (creator only)
+router.post('/accept-request', auth, gameController.acceptRequest);
+
 module.exports = router;
