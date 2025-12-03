@@ -297,31 +297,33 @@ export default function GameDetails() {
             )}
           </View>
         </View>
-        <View style={styles.cardContainer}>
-          <TouchableWithoutFeedback onPress={() => setShowRequests(!showRequests)}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={styles.cardTitle}>Requests</Text>
-              <Ionicons name={showRequests ? "chevron-up" : "chevron-down"} size={24} color={Colors.gray700}/>
-            </View>
-          </TouchableWithoutFeedback>
-          {
-            showRequests ?
-            <View>
-              <Text style={styles.cardSubtitle}>Players who are requesting to join your game.</Text> 
-              {requests.map((request, index) => {
-                return <GameRequestCard key={index} player={request} onAccept={showAcceptAlert} onReject={showRejectAlert}/>
-              })}
-            </View> 
-            : null
-          }
-        </View>
         {
-          game.userRole === "creator" ?
+        game.userRole === "creator" ? 
+        <View>
+          <View style={styles.cardContainer}>
+            <TouchableWithoutFeedback onPress={() => setShowRequests(!showRequests)}>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Text style={styles.cardTitle}>Requests</Text>
+                <Ionicons name={showRequests ? "chevron-up" : "chevron-down"} size={24} color={Colors.gray700}/>
+              </View>
+            </TouchableWithoutFeedback>
+            {
+              showRequests ?
+              <View>
+                <Text style={styles.cardSubtitle}>Players who are requesting to join your game.</Text> 
+                {requests.map((request, index) => {
+                  return <GameRequestCard key={index} player={request} onAccept={showAcceptAlert} onReject={showRejectAlert}/>
+                })}
+              </View> 
+              : null
+            }
+          </View>
           <TouchableOpacity style={styles.deleteButtonContainer}
             onPress={showDeleteAlert}>
               <Text style={styles.deleteGameButton}>Delete Game</Text>
           </TouchableOpacity>
-          : null
+        </View> 
+        : null
         }
       </ScrollView>
     </SafeAreaView>
