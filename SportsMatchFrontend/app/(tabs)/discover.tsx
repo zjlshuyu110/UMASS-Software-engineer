@@ -1,9 +1,7 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, FlatList, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, TouchableWithoutFeedback } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
-import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import GameCard from '@/src/components/ui/game-card';
-import { SFSymbol } from 'expo-symbols';
 import { Game } from '@/src/models/Game';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,7 +10,7 @@ import { useCallback, useState } from 'react';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import { loadToken } from '@/src/redux/slices/userSlice';
 import { useFocusEffect } from '@react-navigation/native';
-import { getGamesSoonAsync } from '@/src/apiCalls/game';
+import { getGameBySportAsync, getGamesSoonAsync } from '@/src/apiCalls/game';
 
 export default function DiscoverView() {
   const dispatch = useAppDispatch();
@@ -90,23 +88,30 @@ export default function DiscoverView() {
           userRole: game.userRole || '',
         },
       });
-    }
+  }
+
+  function navigateToSearch(sportType: string) {
+    router.push({
+      pathname: "/search" as any,
+      params: { sportType }
+    })
+  }
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
             <Text style={styles.headerText}>Discover</Text>
-            <TouchableOpacity style={styles.searchBar}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableWithoutFeedback>
+              <View style={styles.searchBar}>
                 <Ionicons size={12} color={'black'} name='search' style={{ marginRight: 4 }} />
-                <Ionicons size={12} src="/assets/images/racket.svg"/>
                 <Text>Search for games</Text>
               </View>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
 
             {/* Sports Categories */}
             <View style={styles.sportCategoriesContainer}>
                 {sports.map((sport, index) => (
-                  <TouchableOpacity key={index} style={styles.categoryCard}>
+                  <TouchableOpacity key={index} style={styles.categoryCard} onPress={() => navigateToSearch(sport.name)}>
                     <Image style={{width:40, height:40}} source={sport.icon}/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>{sport.name}</Text>
                   </TouchableOpacity>
@@ -173,7 +178,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 12,
-    borderRadius: 8
+    borderRadius: 8,
+    flexDirection: 'row', 
+    alignItems: 'center'
   },
   sectionText: {
     ...Typescale.titleL, 
