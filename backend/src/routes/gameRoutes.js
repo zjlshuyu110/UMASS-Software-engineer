@@ -27,6 +27,10 @@ router.post('/remove', auth, gameController.removePlayer);
 // @desc    Get all games for the user
 router.get('/my', auth, gameController.getUserGames);
 
+// @route   GET /api/games/sport
+// @desc    Get games by sport type
+router.get('/sport', auth, gameController.getGameBySportType);
+
 // @route   GET /api/games/soon
 // @desc    Get games happening in the next 24 hours
 router.get('/soon', auth, gameController.getGamesNext24Hours);

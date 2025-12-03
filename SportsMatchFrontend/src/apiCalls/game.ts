@@ -20,6 +20,24 @@ export const getMyGamesAsync = async () => {
     }
 }
 
+export const getGameBySportAsync = async (sportType: string) => {
+    try {
+        const token = await getToken();
+        const response = await axios.get(
+            `${API_URL}/games/sport`, 
+            {
+                params: { sportType },
+                headers: {'x-auth-token': token},
+            }
+        )
+
+        return response.data
+    } catch (error: any) {
+        console.log(error)
+        throw new Error("Get game by sport failed.")
+    }
+}
+
 export const createGameAsync = async (newGame: { name: string, sportType: string, inviteEmails: string[], maxPlayers: number, location: string, startAt: string }) => {
     try {
         const token = await getToken();

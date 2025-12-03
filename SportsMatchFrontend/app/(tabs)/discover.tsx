@@ -1,9 +1,7 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, FlatList, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
-import { IconSymbol } from '@/src/components/ui/icon-symbol';
 import GameCard from '@/src/components/ui/game-card';
-import { SFSymbol } from 'expo-symbols';
 import { Game } from '@/src/models/Game';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,7 +10,7 @@ import { useCallback, useState } from 'react';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import { loadToken } from '@/src/redux/slices/userSlice';
 import { useFocusEffect } from '@react-navigation/native';
-import { getGamesSoonAsync } from '@/src/apiCalls/game';
+import { getGameBySportAsync, getGamesSoonAsync } from '@/src/apiCalls/game';
 
 export default function DiscoverView() {
   const dispatch = useAppDispatch();
@@ -82,6 +80,16 @@ export default function DiscoverView() {
     }, [dispatch, fetchGames])
   );
 
+  const fetchGamesBySport = async (sportType: string) => {
+    try {
+      const response = await getGameBySportAsync(sportType)
+
+      console.log(response)
+    } catch (err) {
+      console.error('Error fetching games:', err)
+    }
+  }
+
   function navigateToGameDetails(game: Game) {
       router.push({
         pathname: "/gameDetails" as any,
@@ -106,7 +114,7 @@ export default function DiscoverView() {
             {/* Sports Categories */}
             <View style={styles.sportCategoriesContainer}>
                 {sports.map((sport, index) => (
-                  <TouchableOpacity key={index} style={styles.categoryCard}>
+                  <TouchableOpacity key={index} style={styles.categoryCard} onPress={() => fetchGamesBySport(sport.name)}>
                     <Image style={{width:40, height:40}} source={sport.icon}/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>{sport.name}</Text>
                   </TouchableOpacity>

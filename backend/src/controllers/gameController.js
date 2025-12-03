@@ -228,7 +228,7 @@ exports.getGameById = async (req, res) => {
 
 exports.getGameBySportType = async (req, res) => {
   try {
-    const { sportType } = req.body;
+    const { sportType } = req.query;
     const games = await Game.find({ sportType });
     res.json({ games });
   } catch (err) {
