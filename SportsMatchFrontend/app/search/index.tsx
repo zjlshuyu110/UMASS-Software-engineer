@@ -7,7 +7,6 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
 import { Text, StyleSheet, View, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { SearchBar } from "react-native-screens";
 
 export default function SearchView() {
     const router = useRouter();
@@ -89,7 +88,7 @@ export default function SearchView() {
     
     return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12}}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, paddingHorizontal: 12, paddingTop: 12}}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={handleBack}
@@ -97,18 +96,25 @@ export default function SearchView() {
           >
             <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
-          <Text>{sportType}</Text>
+          <Text style={styles.headerText}>{sportType}</Text>
         </View>
-        <ScrollView style={{ paddingHorizontal: 12, flex: 1 }} >
-            <View>
-            {loading ? 
-            <ActivityIndicator size="large" color={Colors.primaryLight}/> :
-            <View style={{ rowGap: 8}}>
+        {loading ? 
+        <ActivityIndicator size="large" color={Colors.primaryLight}/> :
+        error ?
+        <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>There was an error getting games.</Text> 
+        </View> :
+        games.length === 0 ?
+        <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>There are no {sportType} games.</Text> 
+        </View> :
+        <ScrollView style={styles.listScroll}>
+            <View style={{ rowGap: 8 }}>
                 {games.map((game, index) => <GameCard key={index} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
             </View>
-            }
-            </View>
         </ScrollView>
+        }
+        
         
     </SafeAreaView>)
 }
@@ -134,4 +140,20 @@ const styles = StyleSheet.create({
         marginRight: 8,
         alignContent: 'center',
     },
+    emptyContainer: {
+        justifyContent: 'center',
+        flex: 1,
+        paddingHorizontal: 12
+    },
+    emptyText: {
+        ...Typescale.titleL, 
+        textAlign: 'center', 
+        color: Colors.gray700, 
+        fontWeight: 400, 
+        fontStyle: 'italic', 
+    },
+    listScroll: {
+        paddingHorizontal: 12, 
+        flex: 1
+    }
 })
