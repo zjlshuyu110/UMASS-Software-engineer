@@ -80,16 +80,6 @@ export default function DiscoverView() {
     }, [dispatch, fetchGames])
   );
 
-  const fetchGamesBySport = async (sportType: string) => {
-    try {
-      const response = await getGameBySportAsync(sportType)
-
-      console.log(response)
-    } catch (err) {
-      console.error('Error fetching games:', err)
-    }
-  }
-
   function navigateToGameDetails(game: Game) {
       router.push({
         pathname: "/gameDetails" as any,
@@ -98,7 +88,15 @@ export default function DiscoverView() {
           userRole: game.userRole || '',
         },
       });
-    }
+  }
+
+  function navigateToSearch(sportType: string) {
+    router.push({
+      pathname: "/search" as any,
+      params: { sportType }
+    })
+  }
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
@@ -106,7 +104,6 @@ export default function DiscoverView() {
             <TouchableOpacity style={styles.searchBar}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons size={12} color={'black'} name='search' style={{ marginRight: 4 }} />
-                <Ionicons size={12} src="/assets/images/racket.svg"/>
                 <Text>Search for games</Text>
               </View>
             </TouchableOpacity>
@@ -114,7 +111,7 @@ export default function DiscoverView() {
             {/* Sports Categories */}
             <View style={styles.sportCategoriesContainer}>
                 {sports.map((sport, index) => (
-                  <TouchableOpacity key={index} style={styles.categoryCard} onPress={() => fetchGamesBySport(sport.name)}>
+                  <TouchableOpacity key={index} style={styles.categoryCard} onPress={() => navigateToSearch(sport.name)}>
                     <Image style={{width:40, height:40}} source={sport.icon}/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>{sport.name}</Text>
                   </TouchableOpacity>
