@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, TouchableWithoutFeedback } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
 import GameCard from '@/src/components/ui/game-card';
@@ -101,12 +101,12 @@ export default function DiscoverView() {
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
             <Text style={styles.headerText}>Discover</Text>
-            <TouchableOpacity style={styles.searchBar}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableWithoutFeedback>
+              <View style={styles.searchBar}>
                 <Ionicons size={12} color={'black'} name='search' style={{ marginRight: 4 }} />
                 <Text>Search for games</Text>
               </View>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
 
             {/* Sports Categories */}
             <View style={styles.sportCategoriesContainer}>
@@ -178,7 +178,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 12,
-    borderRadius: 8
+    borderRadius: 8,
+    flexDirection: 'row', 
+    alignItems: 'center'
   },
   sectionText: {
     ...Typescale.titleL, 
