@@ -1,5 +1,6 @@
 const Game = require('../models/Game');
 const User = require('../models/User');
+const Notification = require('../models/Notif');
 const nodemailer = require('nodemailer');
 
 async function sendInviteEmail(email, gameName, inviter) {
@@ -676,20 +677,25 @@ exports.rejectRequest = async (req, res) => {
     request.status = 'declined';
     await game.save();
     
+    // Find user by email for notification
+    const requestedUser = await User.findOne({ email: requestEmail });
+    
     // Populate players and creator to return formatted data
     const populatedGame = await Game.findById(gameId).populate('creator players');
     const gameObj = populatedGame.toObject();
     
     // Send notification to the user
-    const notification = new Notification({
-      user: requestedUser._id,
-      game: gameId,
-      category: 'request',
-      type: 'reject',
-      title: game.creator.name + ' has rejected your request to join the game',
-      date: new Date()
-    });
-    await notification.save();
+    if (requestedUser) {
+      const notification = new Notification({
+        user: requestedUser._id,
+        game: gameId,
+        category: 'request',
+        type: 'reject',
+        title: game.creator.name + ' has rejected your request to join the game',
+        date: new Date()
+      });
+      await notification.save();
+    }
 
     // Format players with sport_interests
     const formattedPlayers = gameObj.players.map(player => {
