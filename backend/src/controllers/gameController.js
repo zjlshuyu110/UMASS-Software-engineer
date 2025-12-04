@@ -36,7 +36,20 @@ exports.createGame = async (req, res) => {
     // Notify invited players
     for (const email of inviteEmails || []) {
       await sendInviteEmail(email, name, req.user.name || 'A user');
+      const user = await User.findOne({ email: email });
+      if (!user) continue;
+      // Send notification to the invited player
+      const notification = new Notification({
+        user: user._id,
+        game: game._id,
+        category: 'invitation',
+        type: 'join',
+        title: req.user.name + ' has invited you to join the game',
+        date: new Date()
+      });
+      await notification.save();
     }
+    
     res.status(201).json({ msg: 'Game created and invitations sent.', game });
   } catch (err) {
     console.error(err);
@@ -117,7 +130,18 @@ exports.acceptInvite = async (req, res) => {
     } else if (formattedPlayers.some(p => p._id.toString() === user._id.toString())) {
       userRole = 'player';
     }
-    
+
+    // Send notification to the creator
+    const notification = new Notification({
+      user: gameObj.creator._id,
+      game: gameId,
+      category: 'invitation',
+      type: 'accept',
+      title: user.name + ' has accepted your invitation to join the game',
+      date: new Date()
+    });
+    await notification.save();
+
     res.json({ 
       msg: 'Joined the game', 
       game: {
@@ -169,6 +193,17 @@ exports.declineInvite = async (req, res) => {
       age: gameObj.creator.age,
       sport_interests: gameObj.creator.sport_interests ? Object.fromEntries(gameObj.creator.sport_interests) : {}
     };
+
+    // Send notification to the creator
+    const notification = new Notification({
+      user: gameObj.creator._id,
+      game: gameId,
+      category: 'invitation',
+      type: 'reject',
+      title: user.name + ' has declined your invitation to join the game',
+      date: new Date()
+    });
+    await notification.save();
     
     // Format requests with user data for pending requests
     const formattedRequests = await Promise.all(
@@ -493,7 +528,17 @@ exports.sendRequest = async (req, res) => {
     // Add request to game
     game.requests.push({ email: user.email, status: 'pending' });
     await game.save();
-    
+
+    // Send notification to the creator
+    const notification = new Notification({
+      user: game.creator,
+      game: gameId,
+      category: 'request',
+      type: 'join',
+      title: user.name + ' has requested to join the game',
+      date: new Date()
+    });
+    await notification.save();
     res.json({ msg: 'Request sent successfully', game });
   } catch (err) {
     console.error(err);
@@ -534,6 +579,16 @@ exports.acceptRequest = async (req, res) => {
     game.players.push(requestedUser._id);
     await game.save();
     
+    // Send notification to the user
+    const notification = new Notification({
+      user: requestedUser._id,
+      game: gameId,
+      category: 'request',
+      type: 'accept',
+      title: game.creator.name + ' has accepted your request to join the game',
+      date: new Date()
+    });
+    await notification.save();
     // Populate players and creator to return formatted data
     const populatedGame = await Game.findById(gameId).populate('creator players');
     const gameObj = populatedGame.toObject();
@@ -625,6 +680,17 @@ exports.rejectRequest = async (req, res) => {
     const populatedGame = await Game.findById(gameId).populate('creator players');
     const gameObj = populatedGame.toObject();
     
+    // Send notification to the user
+    const notification = new Notification({
+      user: requestedUser._id,
+      game: gameId,
+      category: 'request',
+      type: 'reject',
+      title: game.creator.name + ' has rejected your request to join the game',
+      date: new Date()
+    });
+    await notification.save();
+
     // Format players with sport_interests
     const formattedPlayers = gameObj.players.map(player => {
       const playerObj = {
