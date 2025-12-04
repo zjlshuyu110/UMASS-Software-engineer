@@ -47,4 +47,8 @@ router.post('/request', auth, gameController.sendRequest);
 // @desc    Accept a request to join a game (creator only)
 router.post('/accept-request', auth, gameController.acceptRequest);
 
+// @route   POST /api/games/reject-request
+// @desc    Reject a request to join a game (creator only)
+router.post('/reject-request', auth, gameController.rejectRequest);
+
 module.exports = router;
