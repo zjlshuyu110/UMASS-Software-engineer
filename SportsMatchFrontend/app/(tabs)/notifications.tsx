@@ -1,15 +1,57 @@
-import { Text, View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { Text, View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale, Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Notification } from '@/src/models/Notification';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { getNotificationsAsync, markAsReadAsync } from '@/src/apiCalls/notification';
+import { useRouter } from 'expo-router';
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 type FilterState = "none" | "unread" | "read"
 
 export default function NotificationsView() {
   const [selectedFilter, setSelectedFilter] = useState<FilterState>("none");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const response = await getNotificationsAsync();
+      // Parse date strings to Date objects
+      const parsedNotifications = response.notifications.map((noti: any) => ({
+        ...noti,
+        date: new Date(noti.date),
+        createdAt: noti.createdAt ? new Date(noti.createdAt) : undefined
+      }));
+      setNotifications(parsedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markAsReadAsync(notificationId);
+      // Update local state optimistically
+      setNotifications(prevNotifications =>
+        prevNotifications.map(noti =>
+          noti._id === notificationId ? { ...noti, unread: false } : noti
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      // Refresh notifications on error to sync with server
+      fetchNotifications();
+    }
+  };
 
   const handleFilterPress = (pressed: FilterState) => {
     setSelectedFilter((prev) => {
@@ -27,7 +69,7 @@ export default function NotificationsView() {
           (selectedFilter === "read" && !noti.unread)
         );
       }),
-    [selectedFilter]
+    [selectedFilter, notifications]
   );
 
   return (
@@ -63,15 +105,63 @@ export default function NotificationsView() {
           </View>
           {/* Notifications */}
           <View>
-            {filteredNotifications.map((noti, id) => <NotificationCard key={id} notification={noti}/>)}
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.primaryLight} />
+              </View>
+            ) : filteredNotifications.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No notifications</Text>
+              </View>
+            ) : (
+              filteredNotifications.map((noti) => (
+                <NotificationCard 
+                  key={noti._id} 
+                  notification={noti}
+                  onMarkAsRead={() => handleMarkAsRead(noti._id)}
+                />
+              ))
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
   );
 }
 
-function NotificationCard({ notification }: {notification: Notification} ) {
-  const { bg, icon, iconName } = notificationTypeStyles[notification.type]
+function NotificationCard({ notification, onMarkAsRead }: {notification: Notification, onMarkAsRead: () => void} ) {
+  const { bg, icon, iconName } = notificationTypeStyles[notification.type] || notificationTypeStyles.accept;
+  const [markingAsRead, setMarkingAsRead] = useState(false);
+  const router = useRouter();
+
+  const handleMarkAsRead = async () => {
+    try {
+      setMarkingAsRead(true);
+      await onMarkAsRead();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    } finally {
+      setMarkingAsRead(false);
+    }
+  };
+
+  const handleNotificationPress = () => {
+    // Get gameId from notification.game (could be object with _id or just string ID)
+    const gameId = typeof notification.game === 'object' && notification.game?._id 
+      ? notification.game._id 
+      : typeof notification.game === 'string' 
+      ? notification.game 
+      : null;
+    
+    if (gameId) {
+      router.push({
+        pathname: "/gameDetails" as any,
+        params: {
+          gameId: gameId,
+          userRole: '', // Will be determined by the gameDetails page
+        },
+      });
+    }
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -81,10 +171,27 @@ function NotificationCard({ notification }: {notification: Notification} ) {
             <Ionicons size={20} name={iconName} color={icon}/>
           </View>
         </View>
-        <View style={{ justifyContent: 'space-between', flex: 1}}>
+        <TouchableOpacity 
+          style={{ justifyContent: 'space-between', flex: 1 }}
+          onPress={handleNotificationPress}
+          activeOpacity={0.7}
+        >
           <Text style={notification.unread ? styles.notificationTitleUnread : styles.notificationTitleRead}>{notification.title}</Text>
           <Text style={styles.notificationDate}>{notification.date.toLocaleDateString('en-US', {month: 'short', day: '2-digit',})}</Text>
-        </View>
+        </TouchableOpacity>
+        {notification.unread && (
+          <TouchableOpacity 
+            onPress={handleMarkAsRead}
+            disabled={markingAsRead}
+            style={styles.markAsReadButton}
+          >
+            <Ionicons 
+              name="checkmark-done-circle-outline" 
+              size={24} 
+              color={Colors.primaryLight} 
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -101,7 +208,7 @@ const notificationTypeStyles: {[type: string]: {bg: string, icon: string, iconNa
     icon: "#ef4444",
     iconName: "close"
   },
-  pending: {
+  join: {
     bg: "#fef9c3",
     icon: "#facc15",
     iconName: "ellipsis-horizontal"
@@ -173,26 +280,23 @@ const styles = StyleSheet.create({
     height: 40, 
     alignItems: 'center', 
     justifyContent: 'center'
+  },
+  markAsReadButton: {
+    marginLeft: 8,
+    padding: 4
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyText: {
+    ...Typescale.labelL,
+    color: Colors.gray700
   }
 });
-
-const notifications: Notification[] = [
-  {
-    type: 'reject',
-    title: "Rejected from \"Basketball Tournament: Winner Gets $1000\"",
-    date: new Date(),
-    unread: true
-  },
-  {
-    type: 'accept',
-    title: "Accepted to \"Basketball Tournament: Winner Gets $1000\"",
-    date: new Date(),
-    unread: false,
-  },
-  {
-    type: 'pending',
-    title: "Nam Nguyen requesting to join \"Basketball Tournament: Winner Gets $1000\"",
-    date: new Date(),
-    unread: false
-  },
-]
