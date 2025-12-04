@@ -16,10 +16,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import GamePlayerCard from "@/src/components/games/game-player-card";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {formatISOToDayDate} from "@/src/utils/date-utils";
-import { getGameByIdAsync, sendRequestAsync } from "@/src/apiCalls/game";
+import { getGameByIdAsync, sendRequestAsync, acceptInviteAsync, acceptRequestAsync, rejectRequestAsync } from "@/src/apiCalls/game";
 import GameRequestCard from "@/src/components/games/game-request-card";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+
+interface RequestData {
+  _id?: string;
+  email: string;
+  name: string;
+  age: number;
+  sport_interests?: any;
+  status: string;
+  requestedAt?: string;
+}
 
 interface GameData {
   _id: string;
@@ -29,6 +39,7 @@ interface GameData {
   startAt: string;
   maxPlayers: number;
   players: any[];
+  requests?: RequestData[];
   userRole?: 'creator' | 'player' | 'invited' | 'requester';
 }
 
@@ -48,6 +59,9 @@ export default function GameDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requesting, setRequesting] = useState(false);
+  const [requestSent, setRequestSent] = useState(initialUserRole === 'requester');
+  const [acceptingInvite, setAcceptingInvite] = useState(false);
+  const [inviteAccepted, setInviteAccepted] = useState(initialUserRole === 'player' || initialUserRole === 'creator');
 
   const [showRequests, setShowRequests] = useState(false)
 
@@ -63,6 +77,10 @@ export default function GameDetails() {
       setError(null);
       const response = await getGameByIdAsync(gameId);
       setGame(response.game);
+      // Sync local state with fetched game data
+      const fetchedUserRole = response.game?.userRole || initialUserRole;
+      setRequestSent(fetchedUserRole === 'requester');
+      setInviteAccepted(fetchedUserRole === 'player' || fetchedUserRole === 'creator');
     } catch (err) {
       console.error('Error fetching game:', err);
       setError('Failed to load game details');
@@ -79,6 +97,7 @@ export default function GameDetails() {
     try {
       setRequesting(true);
       await sendRequestAsync(gameId);
+      setRequestSent(true);
       Alert.alert("Success", "Request sent successfully!", [
         { text: "OK", onPress: () => fetchGameData() }
       ]);
@@ -86,6 +105,29 @@ export default function GameDetails() {
       Alert.alert("Error", err.message || "Failed to send request");
     } finally {
       setRequesting(false);
+    }
+  };
+
+  const handleAcceptInvite = async () => {
+    try {
+      setAcceptingInvite(true);
+      const response = await acceptInviteAsync(gameId);
+      // Update game state immediately with the updated game data
+      if (response.game) {
+        setGame(response.game);
+        // Sync local state with updated game data
+        const fetchedUserRole = response.game?.userRole || initialUserRole;
+        setRequestSent(fetchedUserRole === 'requester');
+        // User is now a player after accepting invite
+        setInviteAccepted(true);
+      }
+      Alert.alert("Success", "Invite accepted successfully!", [
+        { text: "OK", onPress: () => fetchGameData() }
+      ]);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to accept invite");
+    } finally {
+      setAcceptingInvite(false);
     }
   };
 
@@ -105,37 +147,35 @@ export default function GameDetails() {
     )
   }
 
-  const showAcceptAlert = () => {
-    Alert.alert(
-      "Accept player",
-      "Adding this player into your game.",
-      [
-        { text: "Cancel", style: "cancel"},
-        {
-          text: "OK",
-          onPress: () =>{
-            // Handle adding player to game
-          }
-        }
-      ]
-    )
-  }
+  const handleAcceptRequest = async (requestEmail: string) => {
+    try {
+      const response = await acceptRequestAsync(gameId, requestEmail);
+      // Update game state immediately with the updated game data
+      if (response.game) {
+        setGame(response.game);
+      }
+      Alert.alert("Success", "Request accepted successfully!", [
+        { text: "OK", onPress: () => fetchGameData() }
+      ]);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to accept request");
+    }
+  };
 
-  const showRejectAlert = () => {
-    Alert.alert(
-      "Reject player",
-      "Rejecting this player from your game.",
-      [
-        { text: "Cancel", style: "cancel"},
-        {
-          text: "OK",
-          onPress: () =>{
-            // Handle rejecting player
-          }
-        }
-      ]
-    )
-  }
+  const handleRejectRequest = async (requestEmail: string) => {
+    try {
+      const response = await rejectRequestAsync(gameId, requestEmail);
+      // Update game state immediately with the updated game data
+      if (response.game) {
+        setGame(response.game);
+      }
+      Alert.alert("Success", "Request rejected successfully!", [
+        { text: "OK", onPress: () => fetchGameData() }
+      ]);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to reject request");
+    }
+  };
 
   // Transform players data with skill levels
   const transformPlayers = (): PlayerData[] => {
@@ -156,8 +196,9 @@ export default function GameDetails() {
 
   const players = transformPlayers();
   const userRole = game?.userRole || initialUserRole;
-  const isJoined = userRole === 'creator' || userRole === 'player';
-  const isRequestPending = userRole === 'requester';
+  const isJoined = userRole === 'creator' || userRole === 'player' || inviteAccepted;
+  const isRequestPending = userRole === 'requester' || requestSent;
+  const isInvited = userRole === 'invited' && !inviteAccepted;
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -268,16 +309,22 @@ export default function GameDetails() {
               backgroundColor: isJoined || isRequestPending ? Colors.gray700 : Colors.primary,
               borderRadius: 8,
               alignItems: "center",
-              opacity: requesting ? 0.6 : 1,
+              opacity: requesting || acceptingInvite ? 0.6 : 1,
             }}
-            disabled={isJoined || isRequestPending || requesting}
-            onPress={handleRequestToJoin}
+            disabled={isJoined || isRequestPending || requesting || acceptingInvite}
+            onPress={isInvited ? handleAcceptInvite : handleRequestToJoin}
           >
-            {requesting ? (
+            {requesting || acceptingInvite ? (
               <ActivityIndicator size="small" color={Colors.primaryWhite} />
             ) : (
               <Text style={styles.addPlayerButton}>
-                {isJoined ? 'Already Joined' : isRequestPending ? 'Request Pending' : 'Request to Join'}
+                {isJoined 
+                  ? 'Already Joined' 
+                  : isRequestPending 
+                    ? 'Already Requested' 
+                    : isInvited 
+                      ? 'Accept Invite' 
+                      : 'Request to Join'}
               </Text>
             )}
           </TouchableOpacity>
@@ -311,9 +358,33 @@ export default function GameDetails() {
               showRequests ?
               <View>
                 <Text style={styles.cardSubtitle}>Players who are requesting to join your game.</Text> 
-                {requests.map((request, index) => {
-                  return <GameRequestCard key={index} player={request} onAccept={showAcceptAlert} onReject={showRejectAlert}/>
-                })}
+                {!game.requests || game.requests.filter((req: RequestData) => req.status === 'pending').length === 0 ? (
+                  <Text style={{ ...Typescale.bodyM, color: Colors.gray600, textAlign: 'center', paddingVertical: 16 }}>
+                    No pending requests
+                  </Text>
+                ) : (
+                  game.requests
+                    .filter((req: RequestData) => req.status === 'pending')
+                    .map((request: RequestData, index: number) => {
+                      // Transform request to player data format
+                      const sportInterests = request.sport_interests || {};
+                      const skillLevel = sportInterests[game.sportType] || 1;
+                      const requestPlayer: PlayerData = {
+                        name: request.name || request.email || 'Unknown',
+                        age: request.age || 0,
+                        skillLevel: skillLevel
+                      };
+                      
+                      return (
+                        <GameRequestCard 
+                          key={index} 
+                          player={requestPlayer} 
+                          onAccept={() => handleAcceptRequest(request.email)} 
+                          onReject={() => handleRejectRequest(request.email)}
+                        />
+                      );
+                    })
+                )}
               </View> 
               : null
             }
@@ -398,12 +469,3 @@ const styles = StyleSheet.create({
     color: "#ef4444"
   }
 });
-
-const requests = [
-  { name: "Alice", age: 30, skillLevel: 1},
-  { name: "Bob", age: 25, skillLevel: 1 },
-  { name: "Charlie", age: 35, skillLevel: 2 },
-  { name: "David", age: 40, skillLevel: 4 },
-  { name: "Eve", age: 28, skillLevel: 1 },
-  { name: "Frank", age: 33, skillLevel: 2 },
-]

@@ -55,7 +55,79 @@ exports.acceptInvite = async (req, res) => {
     invite.status = 'accepted';
     game.players.push(user._id);
     await game.save();
-    res.json({ msg: 'Joined the game', game });
+    
+    // Populate players and creator to return formatted data
+    const populatedGame = await Game.findById(gameId).populate('creator players');
+    const gameObj = populatedGame.toObject();
+    
+    // Format players with sport_interests
+    const formattedPlayers = gameObj.players.map(player => {
+      const playerObj = {
+        _id: player._id,
+        name: player.name,
+        email: player.email,
+        age: player.age,
+        sport_interests: player.sport_interests ? Object.fromEntries(player.sport_interests) : {}
+      };
+      return playerObj;
+    });
+    
+    // Format creator
+    const formattedCreator = {
+      _id: gameObj.creator._id,
+      name: gameObj.creator.name,
+      email: gameObj.creator.email,
+      age: gameObj.creator.age,
+      sport_interests: gameObj.creator.sport_interests ? Object.fromEntries(gameObj.creator.sport_interests) : {}
+    };
+    
+    // Format requests with user data for pending requests
+    const formattedRequests = await Promise.all(
+      gameObj.requests
+        .filter(req => req.status === 'pending')
+        .map(async (request) => {
+          const requestUser = await User.findOne({ email: request.email });
+          if (requestUser) {
+            return {
+              _id: requestUser._id,
+              email: request.email,
+              name: requestUser.name,
+              age: requestUser.age,
+              sport_interests: requestUser.sport_interests ? Object.fromEntries(requestUser.sport_interests) : {},
+              status: request.status,
+              requestedAt: request.requestedAt
+            };
+          }
+          return {
+            email: request.email,
+            name: request.email, // Fallback to email if user not found
+            age: 0,
+            sport_interests: {},
+            status: request.status,
+            requestedAt: request.requestedAt
+          };
+        })
+    );
+    
+    // Determine userRole for the current user (now a player)
+    const creatorId = gameObj.creator._id ? gameObj.creator._id.toString() : gameObj.creator.toString();
+    let userRole = null;
+    if (creatorId === user._id.toString()) {
+      userRole = 'creator';
+    } else if (formattedPlayers.some(p => p._id.toString() === user._id.toString())) {
+      userRole = 'player';
+    }
+    
+    res.json({ 
+      msg: 'Joined the game', 
+      game: {
+        ...gameObj,
+        creator: formattedCreator,
+        players: formattedPlayers,
+        requests: formattedRequests,
+        userRole
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
@@ -72,7 +144,69 @@ exports.declineInvite = async (req, res) => {
     if (!invite || invite.status !== 'pending') return res.status(400).json({ msg: 'No pending invitation' });
     invite.status = 'declined';
     await game.save();
-    res.json({ msg: 'Declined the invitation', game });
+    
+    // Populate players and creator to return formatted data
+    const populatedGame = await Game.findById(gameId).populate('creator players');
+    const gameObj = populatedGame.toObject();
+    
+    // Format players with sport_interests
+    const formattedPlayers = gameObj.players.map(player => {
+      const playerObj = {
+        _id: player._id,
+        name: player.name,
+        email: player.email,
+        age: player.age,
+        sport_interests: player.sport_interests ? Object.fromEntries(player.sport_interests) : {}
+      };
+      return playerObj;
+    });
+    
+    // Format creator
+    const formattedCreator = {
+      _id: gameObj.creator._id,
+      name: gameObj.creator.name,
+      email: gameObj.creator.email,
+      age: gameObj.creator.age,
+      sport_interests: gameObj.creator.sport_interests ? Object.fromEntries(gameObj.creator.sport_interests) : {}
+    };
+    
+    // Format requests with user data for pending requests
+    const formattedRequests = await Promise.all(
+      gameObj.requests
+        .filter(req => req.status === 'pending')
+        .map(async (request) => {
+          const requestUser = await User.findOne({ email: request.email });
+          if (requestUser) {
+            return {
+              _id: requestUser._id,
+              email: request.email,
+              name: requestUser.name,
+              age: requestUser.age,
+              sport_interests: requestUser.sport_interests ? Object.fromEntries(requestUser.sport_interests) : {},
+              status: request.status,
+              requestedAt: request.requestedAt
+            };
+          }
+          return {
+            email: request.email,
+            name: request.email, // Fallback to email if user not found
+            age: 0,
+            sport_interests: {},
+            status: request.status,
+            requestedAt: request.requestedAt
+          };
+        })
+    );
+    
+    res.json({ 
+      msg: 'Declined the invitation', 
+      game: {
+        ...gameObj,
+        creator: formattedCreator,
+        players: formattedPlayers,
+        requests: formattedRequests
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
@@ -212,11 +346,40 @@ exports.getGameById = async (req, res) => {
       sport_interests: gameObj.creator.sport_interests ? Object.fromEntries(gameObj.creator.sport_interests) : {}
     };
     
+    // Format requests with user data for pending requests
+    const formattedRequests = await Promise.all(
+      gameObj.requests
+        .filter(req => req.status === 'pending')
+        .map(async (request) => {
+          const requestUser = await User.findOne({ email: request.email });
+          if (requestUser) {
+            return {
+              _id: requestUser._id,
+              email: request.email,
+              name: requestUser.name,
+              age: requestUser.age,
+              sport_interests: requestUser.sport_interests ? Object.fromEntries(requestUser.sport_interests) : {},
+              status: request.status,
+              requestedAt: request.requestedAt
+            };
+          }
+          return {
+            email: request.email,
+            name: request.email, // Fallback to email if user not found
+            age: 0,
+            sport_interests: {},
+            status: request.status,
+            requestedAt: request.requestedAt
+          };
+        })
+    );
+    
     res.json({ 
       game: {
         ...gameObj,
         creator: formattedCreator,
         players: formattedPlayers,
+        requests: formattedRequests,
         userRole
       }
     });
@@ -371,7 +534,155 @@ exports.acceptRequest = async (req, res) => {
     game.players.push(requestedUser._id);
     await game.save();
     
-    res.json({ msg: 'Request accepted successfully', game });
+    // Populate players and creator to return formatted data
+    const populatedGame = await Game.findById(gameId).populate('creator players');
+    const gameObj = populatedGame.toObject();
+    
+    // Format players with sport_interests
+    const formattedPlayers = gameObj.players.map(player => {
+      const playerObj = {
+        _id: player._id,
+        name: player.name,
+        email: player.email,
+        age: player.age,
+        sport_interests: player.sport_interests ? Object.fromEntries(player.sport_interests) : {}
+      };
+      return playerObj;
+    });
+    
+    // Format creator
+    const formattedCreator = {
+      _id: gameObj.creator._id,
+      name: gameObj.creator.name,
+      email: gameObj.creator.email,
+      age: gameObj.creator.age,
+      sport_interests: gameObj.creator.sport_interests ? Object.fromEntries(gameObj.creator.sport_interests) : {}
+    };
+    
+    // Format requests with user data for pending requests
+    const formattedRequests = await Promise.all(
+      gameObj.requests
+        .filter(req => req.status === 'pending')
+        .map(async (request) => {
+          const requestUser = await User.findOne({ email: request.email });
+          if (requestUser) {
+            return {
+              _id: requestUser._id,
+              email: request.email,
+              name: requestUser.name,
+              age: requestUser.age,
+              sport_interests: requestUser.sport_interests ? Object.fromEntries(requestUser.sport_interests) : {},
+              status: request.status,
+              requestedAt: request.requestedAt
+            };
+          }
+          return {
+            email: request.email,
+            name: request.email, // Fallback to email if user not found
+            age: 0,
+            sport_interests: {},
+            status: request.status,
+            requestedAt: request.requestedAt
+          };
+        })
+    );
+    
+    res.json({ 
+      msg: 'Request accepted successfully', 
+      game: {
+        ...gameObj,
+        creator: formattedCreator,
+        players: formattedPlayers,
+        requests: formattedRequests
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.rejectRequest = async (req, res) => {
+  try {
+    const { gameId, requestEmail } = req.body;
+    const game = await Game.findById(gameId);
+    if (!game) return res.status(404).json({ msg: 'Game not found' });
+    
+    // Check if user is the creator
+    if (game.creator.toString() !== req.user.id) {
+      return res.status(403).json({ msg: 'Only the game creator can reject requests' });
+    }
+    
+    // Find the request
+    const request = game.requests.find(r => r.email === requestEmail && r.status === 'pending');
+    if (!request) return res.status(400).json({ msg: 'No pending request found for this email' });
+    
+    // Update request status to declined
+    request.status = 'declined';
+    await game.save();
+    
+    // Populate players and creator to return formatted data
+    const populatedGame = await Game.findById(gameId).populate('creator players');
+    const gameObj = populatedGame.toObject();
+    
+    // Format players with sport_interests
+    const formattedPlayers = gameObj.players.map(player => {
+      const playerObj = {
+        _id: player._id,
+        name: player.name,
+        email: player.email,
+        age: player.age,
+        sport_interests: player.sport_interests ? Object.fromEntries(player.sport_interests) : {}
+      };
+      return playerObj;
+    });
+    
+    // Format creator
+    const formattedCreator = {
+      _id: gameObj.creator._id,
+      name: gameObj.creator.name,
+      email: gameObj.creator.email,
+      age: gameObj.creator.age,
+      sport_interests: gameObj.creator.sport_interests ? Object.fromEntries(gameObj.creator.sport_interests) : {}
+    };
+    
+    // Format requests with user data for pending requests
+    const formattedRequests = await Promise.all(
+      gameObj.requests
+        .filter(req => req.status === 'pending')
+        .map(async (request) => {
+          const requestUser = await User.findOne({ email: request.email });
+          if (requestUser) {
+            return {
+              _id: requestUser._id,
+              email: request.email,
+              name: requestUser.name,
+              age: requestUser.age,
+              sport_interests: requestUser.sport_interests ? Object.fromEntries(requestUser.sport_interests) : {},
+              status: request.status,
+              requestedAt: request.requestedAt
+            };
+          }
+          return {
+            email: request.email,
+            name: request.email, // Fallback to email if user not found
+            age: 0,
+            sport_interests: {},
+            status: request.status,
+            requestedAt: request.requestedAt
+          };
+        })
+    );
+    
+    res.json({ 
+      msg: 'Request rejected successfully', 
+      game: {
+        ...gameObj,
+        creator: formattedCreator,
+        players: formattedPlayers,
+        requests: formattedRequests
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
