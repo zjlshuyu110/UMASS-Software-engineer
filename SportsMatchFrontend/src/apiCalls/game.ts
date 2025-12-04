@@ -92,3 +92,23 @@ export const getGamesSoonAsync = async () => {
         throw new Error("Get games soon failed.")
     }
 }
+
+export const acceptInviteAsync = async (gameId: string) => {
+    try {
+        const token = await getToken();
+        const response = await axios.post(
+            `${API_URL}/games/accept`,
+            { gameId },
+            {
+                headers: {
+                    'x-auth-token': token
+                }
+            }
+        )
+        console.log(response.data);
+        return response.data;
+    } catch (error: any) {
+        console.log(error)
+        throw new Error("Accept invite failed.")
+    }
+}

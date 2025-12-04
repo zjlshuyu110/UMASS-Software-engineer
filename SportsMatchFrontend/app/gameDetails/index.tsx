@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import GamePlayerCard from "@/src/components/games/game-player-card";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {formatISOToDayDate} from "@/src/utils/date-utils";
-import { getGameByIdAsync, sendRequestAsync } from "@/src/apiCalls/game";
+import { getGameByIdAsync, sendRequestAsync, acceptInviteAsync } from "@/src/apiCalls/game";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -46,6 +46,7 @@ export default function GameDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requesting, setRequesting] = useState(false);
+  const [actionCompleted, setActionCompleted] = useState(false);
 
   useEffect(() => {
     if (gameId) {
@@ -57,6 +58,7 @@ export default function GameDetails() {
     try {
       setLoading(true);
       setError(null);
+      setActionCompleted(false);
       const response = await getGameByIdAsync(gameId);
       setGame(response.game);
     } catch (err) {
@@ -75,11 +77,27 @@ export default function GameDetails() {
     try {
       setRequesting(true);
       await sendRequestAsync(gameId);
+      setActionCompleted(true);
       Alert.alert("Success", "Request sent successfully!", [
         { text: "OK", onPress: () => fetchGameData() }
       ]);
     } catch (err: any) {
       Alert.alert("Error", err.message || "Failed to send request");
+    } finally {
+      setRequesting(false);
+    }
+  };
+
+  const handleAcceptInvite = async () => {
+    try {
+      setRequesting(true);
+      await acceptInviteAsync(gameId);
+      setActionCompleted(true);
+      Alert.alert("Success", "Invitation accepted! You've joined the game.", [
+        { text: "OK", onPress: () => fetchGameData() }
+      ]);
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to accept invitation");
     } finally {
       setRequesting(false);
     }
@@ -106,6 +124,36 @@ export default function GameDetails() {
   const userRole = game?.userRole || initialUserRole;
   const isJoined = userRole === 'creator' || userRole === 'player';
   const isRequestPending = userRole === 'requester';
+  const isInvited = userRole === 'invited';
+  
+  // Determine button text and state
+  const getButtonText = () => {
+    if (isJoined) return 'Already Joined';
+    if (actionCompleted && isInvited) return 'Invitation Accepted';
+    if (actionCompleted && !isInvited) return 'Request Sent';
+    if (isRequestPending) return 'Request Pending';
+    if (isInvited) return 'Accept Invite';
+    return 'Request to Join';
+  };
+
+  const getButtonColor = () => {
+    if (isJoined || isRequestPending || actionCompleted) {
+      return Colors.gray700;
+    }
+    return Colors.primary;
+  };
+
+  const isButtonDisabled = () => {
+    return isJoined || isRequestPending || requesting || actionCompleted;
+  };
+
+  const handleButtonPress = () => {
+    if (isInvited) {
+      handleAcceptInvite();
+    } else {
+      handleRequestToJoin();
+    }
+  };
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -214,19 +262,19 @@ export default function GameDetails() {
               style={{
                 marginTop: 12,
                 padding: 8,
-                backgroundColor: isJoined || isRequestPending ? Colors.gray700 : Colors.primary,
+                backgroundColor: getButtonColor(),
                 borderRadius: 8,
                 alignItems: "center",
                 opacity: requesting ? 0.6 : 1,
               }}
-              disabled={isJoined || isRequestPending || requesting}
-              onPress={handleRequestToJoin}
+              disabled={isButtonDisabled()}
+              onPress={handleButtonPress}
             >
               {requesting ? (
                 <ActivityIndicator size="small" color={Colors.primaryWhite} />
               ) : (
                 <Text style={styles.addPlayerButton}>
-                  {isJoined ? 'Already Joined' : isRequestPending ? 'Request Pending' : 'Request to Join'}
+                  {getButtonText()}
                 </Text>
               )}
             </TouchableOpacity>
