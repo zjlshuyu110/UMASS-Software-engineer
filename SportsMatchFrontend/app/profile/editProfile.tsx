@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray200,
   },
   headerText: {
-    ...Typescale.headlineS,
+    ...Typescale.titleM,
   },
   backButton: {
     marginRight: 12,

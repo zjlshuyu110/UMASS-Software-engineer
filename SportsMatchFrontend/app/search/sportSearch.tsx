@@ -3,12 +3,12 @@ import { getGameBySportAsync } from "@/src/apiCalls/game";
 import GameCard from "@/src/components/ui/game-card";
 import { Game } from "@/src/models/Game";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState, useCallback } from "react";
-import { Text, StyleSheet, View, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Text, StyleSheet, View, TouchableOpacity, ActivityIndicator, ScrollView, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function SearchView() {
+export default function SportSearchView() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const sportType = params.sportType as string
@@ -104,15 +104,22 @@ export default function SearchView() {
         <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>There was an error getting games.</Text> 
         </View> :
-        games.length === 0 ?
-        <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>There are no {sportType} games.</Text> 
-        </View> :
-        <ScrollView style={styles.listScroll}>
-            <View style={{ rowGap: 8 }}>
-                {games.map((game, index) => <GameCard key={index} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
-            </View>
-        </ScrollView>
+        <FlatList 
+            style={styles.listScroll}
+            data={games}
+            keyExtractor={(game) => game._id}
+            contentContainerStyle={{ gap: 8 }}
+            renderItem={({ item }) => (
+                <GameCard game={item} onPress={() => navigateToGameDetails(item)} />
+            )}
+            ListEmptyComponent={
+                !loading && games.length === 0? (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No {sportType} games found.</Text>
+                </View>
+                ) : null
+            }>
+        </FlatList>
         }
         
         

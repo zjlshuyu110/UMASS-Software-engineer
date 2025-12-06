@@ -438,9 +438,42 @@ exports.getGameBySportType = async (req, res) => {
 
 exports.searchGames = async (req, res) => {
   try {
-    const { query } = req.body;
-    const games = await Game.find({ $text: { $search: query } });
-    res.json({ games });
+    const { sport, name, location, status } = req.query;
+    const now = new Date();
+    
+    // Build search query
+    let query = {};
+    
+    // Filter by sport type
+    if (sport && sport !== 'all') {
+      query.sportType = sport;
+    }
+    
+    // Search by game name (case-insensitive)
+    if (name) {
+      query.name = { $regex: name, $options: 'i' };
+    }
+    
+    // Filter by location (case-insensitive)
+    if (location) {
+      query.location = { $regex: location, $options: 'i' };
+    }
+    
+    // Filter by status (default to 'open' games only)
+    query.status = status || 'open';
+
+    // Filter by date
+    query.startAt = {
+      $gte: now
+    }
+    
+    const games = await Game.find(query)
+      .populate('creator', 'name email')
+      .populate('players', 'name email')
+      .sort({ startAt: 1, createdAt: -1 })
+      .limit(100);
+    
+    res.json({ games, count: games.length });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');

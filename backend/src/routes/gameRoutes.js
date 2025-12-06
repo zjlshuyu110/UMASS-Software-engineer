@@ -27,6 +27,10 @@ router.post('/remove', auth, gameController.removePlayer);
 // @desc    Get all games for the user
 router.get('/my', auth, gameController.getUserGames);
 
+// @route   GET /api/games/search
+// @desc    Search and filter games
+router.get('/search', auth, gameController.searchGames);
+
 // @route   GET /api/games/sport
 // @desc    Get games by sport type
 router.get('/sport', auth, gameController.getGameBySportType);

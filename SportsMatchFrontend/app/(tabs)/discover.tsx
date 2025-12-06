@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, TouchableWithoutFeedback } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, TouchableWithoutFeedback, Modal, Button } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale } from '@/constants/theme';
 import GameCard from '@/src/components/ui/game-card';
@@ -10,13 +10,15 @@ import { useCallback, useState } from 'react';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import { loadToken } from '@/src/redux/slices/userSlice';
 import { useFocusEffect } from '@react-navigation/native';
-import { getGameBySportAsync, getGamesSoonAsync } from '@/src/apiCalls/game';
+import { getGamesSoonAsync } from '@/src/apiCalls/game';
+import { SPORT_TYPES } from '@/constants/game';
 
 export default function DiscoverView() {
   const dispatch = useAppDispatch();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const fetchGames = useCallback(async () => {
     try {
@@ -90,9 +92,15 @@ export default function DiscoverView() {
       });
   }
 
-  function navigateToSearch(sportType: string) {
+  function navigateToQuerySearch() {
     router.push({
-      pathname: "/search" as any,
+      pathname: "/search/querySearch" as any,
+    })
+  }
+
+  function navigateToSportSearch(sportType: string) {
+    router.push({
+      pathname: "/search/sportSearch" as any,
       params: { sportType }
     })
   }
@@ -101,22 +109,22 @@ export default function DiscoverView() {
         <SafeAreaView style={styles.container} edges={['top']}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
             <Text style={styles.headerText}>Discover</Text>
-            <TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={navigateToQuerySearch}>
               <View style={styles.searchBar}>
                 <Ionicons size={12} color={'black'} name='search' style={{ marginRight: 4 }} />
-                <Text>Search for games</Text>
+                <Text style={{color: Colors.gray700}}>Search for games</Text>
               </View>
             </TouchableWithoutFeedback>
 
             {/* Sports Categories */}
             <View style={styles.sportCategoriesContainer}>
                 {sports.map((sport, index) => (
-                  <TouchableOpacity key={index} style={styles.categoryCard} onPress={() => navigateToSearch(sport.name)}>
+                  <TouchableOpacity key={index} style={styles.categoryCard} onPress={() => navigateToSportSearch(sport.name)}>
                     <Image style={{width:40, height:40}} source={sport.icon}/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>{sport.name}</Text>
                   </TouchableOpacity>
                 ))}
-                  <TouchableOpacity style={styles.categoryCard}>
+                  <TouchableOpacity style={styles.categoryCard} onPress={() => setModalVisible(true)}>
                     <Ionicons size={40} color={Colors.primaryLight} name='grid'/>
                     <Text style={{ ...Typescale.labelS, marginTop: 8, fontWeight: 700 }}>More</Text>
                   </TouchableOpacity>
@@ -138,11 +146,34 @@ export default function DiscoverView() {
               </View>
             ) : (
               <View style={{ rowGap: 8 }}>
-                {games.map((game, index) => <GameCard key={index} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
+                {games.map((game, index) => <GameCard key={game._id} game={game} onPress={()=>{navigateToGameDetails(game)}} />)}
               </View>
             )}
           </ScrollView>
+
+          <Modal transparent={true} visible={modalVisible} animationType='slide' onRequestClose={() => setModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Sport Types</Text>
+                  <Button title='Cancel' onPress={() => setModalVisible(false)} color={Colors.primaryLight}></Button>
+                </View>
+                <ScrollView>
+                {SPORT_TYPES.map((sport, id) => 
+                (<TouchableWithoutFeedback key={sport} onPress={() => {
+                    navigateToSportSearch(sport)
+                    setModalVisible(false)
+                  }}>
+                  <View style={styles.modalOption}>
+                    <Text style={styles.modalOptionText}>{sport}</Text>
+                  </View>
+                </TouchableWithoutFeedback>))}
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
         </SafeAreaView>
+        
     )
 }
 
@@ -215,5 +246,43 @@ const styles = StyleSheet.create({
     ...Typescale.bodyM,
     color: Colors.gray600 || '#666',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '60%',
+  },
+  modalHeader: {
+    flexDirection: 'row', 
+    alignItems:'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 20
+  },
+  modalTitle: {
+    ...Typescale.titleM,
+    color: Colors.gray900,
+    fontWeight: '600',
+    textAlignVertical: 'center',
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray200,
+  },
+  modalOptionText: {
+    ...Typescale.bodyL,
+    color: Colors.gray900,
   },
 });

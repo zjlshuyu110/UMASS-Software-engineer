@@ -9,7 +9,8 @@ export default function SearchLayout() {
           animation: "slide_from_right", // optional animation between login screens
         }}
       >
-        <Stack.Screen name="index" />
+        <Stack.Screen name="querySearch"/>
+        <Stack.Screen name="sportSearch" />
       </Stack>
     </>
   );

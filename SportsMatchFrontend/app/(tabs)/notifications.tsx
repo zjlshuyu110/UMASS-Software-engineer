@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale, Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,58 +73,55 @@ export default function NotificationsView() {
   );
 
   return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
-          <Text style={styles.headerText}>Notifications</Text>
-          <View style={{flexDirection: 'row', paddingHorizontal: 12, gap: 6}}>
-            <TouchableOpacity
-              onPress={() => handleFilterPress("unread")}>
-              <View style={[
-                styles.filterChip,
-                selectedFilter === "unread" && styles.filterChipActive
-              ]}>
-                <Text style={[
-                  styles.filterText,
-                  selectedFilter === "unread" && styles.filterTextActive
-                ]}>Unread</Text>
-              </View>
-            </TouchableOpacity>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <Text style={styles.headerText}>Notifications</Text>
+      <View style={{flexDirection: 'row', paddingHorizontal: 12, gap: 6, height: 32, marginBottom: 16}}>
+        <TouchableOpacity
+          onPress={() => handleFilterPress("unread")}>
+          <View style={[
+            styles.filterChip,
+            selectedFilter === "unread" && styles.filterChipActive
+          ]}>
+            <Text style={[
+              styles.filterText,
+              selectedFilter === "unread" && styles.filterTextActive
+            ]}>Unread</Text>
+          </View>
+        </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => handleFilterPress("read")}>
-              <View style={[
-                styles.filterChip,
-                selectedFilter === "read" && styles.filterChipActive
-              ]}>
-                <Text style={[
-                  styles.filterText,
-                  selectedFilter === "read" && styles.filterTextActive
-                ]}>Read</Text>
-              </View>
-            </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleFilterPress("read")}>
+          <View style={[
+            styles.filterChip,
+            selectedFilter === "read" && styles.filterChipActive
+          ]}>
+            <Text style={[
+              styles.filterText,
+              selectedFilter === "read" && styles.filterTextActive
+            ]}>Read</Text>
           </View>
-          {/* Notifications */}
-          <View>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primaryLight} />
-              </View>
-            ) : filteredNotifications.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No notifications</Text>
-              </View>
-            ) : (
-              filteredNotifications.map((noti) => (
-                <NotificationCard 
-                  key={noti._id} 
-                  notification={noti}
-                  onMarkAsRead={() => handleMarkAsRead(noti._id)}
-                />
-              ))
-            )}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+        </TouchableOpacity>
+      </View>
+      {/* Notifications */}
+      <FlatList 
+          data={filteredNotifications}
+          keyExtractor={(noti) => noti._id}
+          contentContainerStyle={{ gap: 8 }}
+          refreshing={loading}
+          onRefresh={fetchNotifications}
+          renderItem={({ item }) => (
+            <NotificationCard 
+              notification={item}
+              onMarkAsRead={() => handleMarkAsRead(item._id)}
+            />
+          )}
+          ListEmptyComponent={
+              !loading && filteredNotifications.length === 0 ? (
+              <Text style={styles.emptyText}>No notifications.</Text>
+              ) : null
+          }
+      />
+    </SafeAreaView>
   );
 }
 
@@ -296,7 +293,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   emptyText: {
-    ...Typescale.labelL,
-    color: Colors.gray700
+    ...Typescale.titleL, 
+    textAlign: 'center', 
+    color: Colors.gray700, 
+    fontWeight: 400, 
+    fontStyle: 'italic', 
   }
 });
