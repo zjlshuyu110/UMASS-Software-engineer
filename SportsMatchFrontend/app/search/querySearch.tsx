@@ -3,8 +3,9 @@ import { searchGamesAsync } from "@/src/apiCalls/game";
 import GameCard from "@/src/components/ui/game-card";
 import { Game } from "@/src/models/Game";
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router"
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, TouchableOpacity, View, StyleSheet, TextInput, ActivityIndicator, FlatList } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -14,6 +15,15 @@ export default function QuerySearchView() {
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [games, setGames] = useState<Game[] | null>(null)
+
+    const inputRef = useRef<TextInput>(null);
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (isFocused) {
+        setTimeout(() => inputRef.current?.focus(), 0);
+        }
+    }, [isFocused]);
 
     const handleBack = () => {
         router.back();
@@ -63,7 +73,7 @@ export default function QuerySearchView() {
                 >
                     <Ionicons name="arrow-back" size={24} />
                 </TouchableOpacity>
-                <TextInput placeholder="Search for game" value={query} onChangeText={onChangeQuery} returnKeyType="search" style={styles.searchBar} clearButtonMode="always" onSubmitEditing={handleSearch} />
+                <TextInput ref={inputRef} placeholder="Search for game" value={query} onChangeText={onChangeQuery} returnKeyType="search" style={styles.searchBar} clearButtonMode="always" onSubmitEditing={handleSearch} />
             </View>
             {/* Search Result */}
             {loading ? 
