@@ -194,13 +194,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContainer: {
-    padding: 12,
     paddingBottom: 24,
     flexGrow: 1
   },
   headerText: {
-    ...Typescale.headlineS,
-    marginBottom: 24
+    ...Typescale.headlineL,
+    marginBottom: 12
   },
   profilePictureContainer: {
     alignItems: 'center',
