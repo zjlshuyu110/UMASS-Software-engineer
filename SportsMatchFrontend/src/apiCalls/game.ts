@@ -73,6 +73,35 @@ export const getGameByIdAsync = async (gameId: string) => {
     }
 }
 
+export const searchGamesAsync = async (filters: { 
+    sport?: string, 
+    name?: string, 
+    location?: string, 
+    status?: string 
+}) => {
+    try {
+        const token = await getToken();
+        const params = new URLSearchParams();
+        
+        if (filters.sport) params.append('sport', filters.sport);
+        if (filters.name) params.append('name', filters.name);
+        if (filters.location) params.append('location', filters.location);
+        if (filters.status) params.append('status', filters.status);
+        
+        const response = await axios.get(
+            `${API_URL}/games/search?${params.toString()}`, {
+                headers: {
+                    'x-auth-token': token
+                }
+            }
+        )
+        return response.data.games;
+    } catch (error: any) {
+        console.log(error)
+        throw new Error("Search games failed.")
+    }
+}
+
 export const sendRequestAsync = async (gameId: string) => {
     try {
         const token = await getToken();

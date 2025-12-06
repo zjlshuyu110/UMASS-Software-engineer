@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Typescale, Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +6,7 @@ import { Notification } from '@/src/models/Notification';
 import { useMemo, useState, useEffect } from 'react';
 import { getNotificationsAsync, markAsReadAsync } from '@/src/apiCalls/notification';
 import { useRouter } from 'expo-router';
+import { searchGamesAsync } from '@/src/apiCalls/game';
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 type FilterState = "none" | "unread" | "read"
@@ -74,7 +75,6 @@ export default function NotificationsView() {
 
   return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.headerText}>Notifications</Text>
           <View style={{flexDirection: 'row', paddingHorizontal: 12, gap: 6}}>
             <TouchableOpacity
@@ -104,26 +104,24 @@ export default function NotificationsView() {
             </TouchableOpacity>
           </View>
           {/* Notifications */}
-          <View>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primaryLight} />
-              </View>
-            ) : filteredNotifications.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No notifications</Text>
-              </View>
-            ) : (
-              filteredNotifications.map((noti) => (
+          <FlatList 
+              data={filteredNotifications}
+              keyExtractor={(noti) => noti._id}
+              contentContainerStyle={{ gap: 8 }}
+              refreshing={loading}
+              onRefresh={fetchNotifications}
+              renderItem={({ item }) => (
                 <NotificationCard 
-                  key={noti._id} 
-                  notification={noti}
-                  onMarkAsRead={() => handleMarkAsRead(noti._id)}
+                  notification={item}
+                  onMarkAsRead={() => handleMarkAsRead(item._id)}
                 />
-              ))
-            )}
-          </View>
-        </ScrollView>
+              )}
+              ListEmptyComponent={
+                  !loading && filteredNotifications.length === 0 ? (
+                  <Text style={styles.emptyText}>No notifications.</Text>
+                  ) : null
+              }
+          />
       </SafeAreaView>
   );
 }
@@ -296,7 +294,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   emptyText: {
-    ...Typescale.labelL,
-    color: Colors.gray700
+    ...Typescale.titleL, 
+    textAlign: 'center', 
+    color: Colors.gray700, 
+    fontWeight: 400, 
+    fontStyle: 'italic', 
   }
 });
