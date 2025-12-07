@@ -18,6 +18,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { SPORT_TYPES } from "@/constants/game";
 import { getProfileAsync, createProfileAsync, updateProfileAsync, checkProfileAsync, ProfileData } from "@/src/apiCalls/profile";
 import { SKILL_LEVELS, getSkillLevelLabel } from "@/constants/skillLevels";
+import * as ImagePicker from 'expo-image-picker';
 
 interface FormState {
   display_picture: string;
@@ -262,9 +263,34 @@ export default function EditProfile() {
             </View>
             <TouchableOpacity
               style={styles.changePictureButton}
-              onPress={() => {
-                // TODO: Implement image picker
-                Alert.alert("Info", "Image picker functionality to be implemented");
+              onPress={async () => {
+                try {
+                  // Request permission
+                  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                  
+                  if (permissionResult.granted === false) {
+                    Alert.alert("Permission Required", "You need to allow access to your photos to change your profile picture.");
+                    return;
+                  }
+
+                  // Launch image picker
+                  const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 0.5, // Compress to reduce size
+                    base64: true, // Get Base64 string
+                  });
+
+                  if (!result.canceled && result.assets[0].base64) {
+                    // Create data URI from Base64
+                    const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+                    handleInputChange('display_picture', base64Image);
+                  }
+                } catch (error) {
+                  console.error('Error picking image:', error);
+                  Alert.alert("Error", "Failed to pick image. Please try again.");
+                }
               }}
             >
               <Text style={styles.changePictureButtonText}>Change Picture</Text>
