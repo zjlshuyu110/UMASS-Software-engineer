@@ -564,12 +564,13 @@ exports.sendRequest = async (req, res) => {
     await game.save();
 
     // Send notification to the creator
+    const requesterName = user.name || 'A user';
     const notification = new Notification({
       user: game.creator,
       game: gameId,
       category: 'request',
       type: 'join',
-      title: user.name + ' has requested to join the game',
+      title: requesterName + ' has requested to join the game',
       date: new Date()
     });
     await notification.save();
@@ -613,13 +614,17 @@ exports.acceptRequest = async (req, res) => {
     game.players.push(requestedUser._id);
     await game.save();
     
+    // Populate creator to get name for notification
+    const creator = await User.findById(game.creator);
+    const creatorName = creator ? (creator.name || creator.email || 'The game creator') : 'The game creator';
+    
     // Send notification to the user
     const notification = new Notification({
       user: requestedUser._id,
       game: gameId,
       category: 'request',
       type: 'accept',
-      title: game.creator.name + ' has accepted your request to join the game',
+      title: creatorName + ' has accepted your request to join the game',
       date: new Date()
     });
     await notification.save();
@@ -719,12 +724,13 @@ exports.rejectRequest = async (req, res) => {
     
     // Send notification to the user
     if (requestedUser) {
+      const creatorName = gameObj.creator.name || 'The game creator';
       const notification = new Notification({
         user: requestedUser._id,
         game: gameId,
         category: 'request',
         type: 'reject',
-        title: game.creator.name + ' has rejected your request to join the game',
+        title: creatorName + ' has rejected your request to join the game',
         date: new Date()
       });
       await notification.save();
