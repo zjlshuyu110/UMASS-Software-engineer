@@ -1,64 +1,11 @@
-# UMASS-Software-engineer
-
-## Project Overview
-This is a mobile app that allows UMass students to host, search for, and participate in sports teams and competitions. Our app aims to streamlines sports game organization at UMass (communication, scheduling, basic stats, etc). The frontend is built with React Native to support both iOS and Android. The backend is built with Node.js, Express, MongoDB, and follows the MVC pattern.
-
-## Backend Setup
-1. Clone the repo and install dependencies:
-   ```bash
-   npm install
-   ```
-2. Create a `.env` file with:
-   ```env
-   MONGO_URI=mongodb://localhost:27017/umass_sports
-   JWT_SECRET=your_jwt_secret_here
-   PORT=5050
-   ```
-3. Start the server:
-   ```bash
-   npm run dev
-   ```
-
-## API Endpoints
-### Auth
-- **POST /api/auth/signup**
-  - Body: `{ name, email, password }`
-  - Response: `{ token }` (JWT)
-- **POST /api/auth/login**
-  - Body: `{ email, password }`
-  - Response: `{ token }` (JWT)
-
-### Auth Middleware
-- Protected routes require `x-auth-token` header with the JWT.
-
-## Testing
-- Run tests with:
-  ```bash
-  npm test
-  ```
-
-## Folder Structure
-- `src/models` - Mongoose models
-- `src/controllers` - Route logic
-- `src/routes` - Express routers
-- `src/middlewares` - Middleware (e.g., auth)
-- `src/config` - DB config
-- `src/tests` - Jest/Supertest tests
-
----
-This is a basic starter. Extend with more features (sports, matchmaking, chat, etc.) as needed!
-
----
-
-# UMASS Sports Match - （Draft set up/run instructions）
+# UMASS Sports Match 
 
 ## 🏀 Project Overview
-A comprehensive mobile application designed for UMass students to organize, discover, and participate in sports games and competitions. The app streamlines the entire sports game lifecycle from creation to participation, including player matching, scheduling, communication, and notifications.
+A mobile application designed for UMass students to organize, discover, and participate in sports games and competitions. The app streamlines the entire sports game lifecycle from creation to participation, including player matching, scheduling, and notifications.
 
 ### Tech Stack
-- **Frontend**: React Native (Expo ~54.0.10), TypeScript, Redux Toolkit, NativeWind (TailwindCSS)
+- **Frontend**: React Native (Expo ~54.0.10)
 - **Backend**: Node.js, Express.js, MongoDB Atlas (Cloud), JWT Authentication
-- **Key Libraries**: expo-router, expo-image-picker, @reduxjs/toolkit, mongoose, bcryptjs
 
 ---
 
@@ -149,17 +96,10 @@ A comprehensive mobile application designed for UMass students to organize, disc
 - View game cards with key information
 - Search functionality for finding specific games
 
-### Communication & Notifications
+### Notifications
 - In-app notification system
 - Game join/leave notifications
 - Real-time notification updates
-- Message system for player communication
-
-### User Interface
-- Tab-based navigation (Discover, Games, Inbox, Profile)
-- Responsive design with NativeWind/TailwindCSS
-- Theme support with custom color schemes
-- Smooth animations and haptic feedback
 
 ---
 
@@ -238,7 +178,6 @@ UMASS-Software-engineer/
 │   ├── package.json
 │   └── README.md
 │
-├── PROJECT_DOCUMENTATION.md       # Detailed project docs
 └── README.md                      # This file
 ```
 
@@ -287,20 +226,6 @@ UMASS-Software-engineer/
 - **POST** `/api/games/:id/join`
   - Headers: `x-auth-token: <JWT>`
   - Response: `{ game }` (updated with new participant)
-  
-- **POST** `/api/games/:id/leave`
-  - Headers: `x-auth-token: <JWT>`
-  - Response: `{ game }` (updated without participant)
-
-### Messages/Notifications (Protected)
-- **POST** `/api/messages/send`
-  - Headers: `x-auth-token: <JWT>`
-  - Body: `{ recipient, content }`
-  - Response: `{ message }`
-  
-- **GET** `/api/messages/inbox`
-  - Headers: `x-auth-token: <JWT>`
-  - Response: `{ messages }`
 
 ---
 
@@ -315,57 +240,9 @@ npm test
 Tests include:
 - Authentication (signup, login, token validation)
 - Game creation and retrieval
-- Protected route authorization
-
-### Manual Testing Checklist
-- [ ] User signup and login flow
-- [ ] Profile creation with photo upload
-- [ ] Game creation with all fields
-- [ ] Game search and filtering
-- [ ] Join/leave game functionality
-- [ ] Notification system
-- [ ] Message system
-
----
-
-## 🔐 Security Features
-- Password hashing with bcrypt
-- JWT-based authentication
-- Token expiration (7 days)
-- Protected API routes with auth middleware
-- Input validation on backend
-- Secure storage of sensitive data (MongoDB Atlas)
-
----
-
-## 📝 Development Notes
-
-### Image Upload Implementation
-- Uses `expo-image-picker` for photo selection
-- Images compressed to 50% quality
-- 1:1 aspect ratio enforced for profile pictures
-- Base64 encoding for storage (no cloud storage required)
-- Permission handling for media library access
-
-### State Management
-- Redux Toolkit for global state
-- User authentication state persisted
-- Token storage with SecureStore (planned)
-
-### Known Issues & Future Improvements
-- Search function in `gameController.js` needs `populate()` for user details
-- Date filtering should exclude past games
-- Consider cloud storage for images (AWS S3, Cloudinary) for production
-- Implement real-time updates with WebSocket
-- Add push notifications
-- Implement chat functionality
+- Notification
 
 ---
 
 ## 👥 Contributors
-UMass CS520 Software Engineering Team
-
----
-
-## 📄 License
-MIT License - See LICENSE file for details
+UMass CS520 Fall 2025 Group 12
