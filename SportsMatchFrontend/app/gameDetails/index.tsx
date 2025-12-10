@@ -389,10 +389,6 @@ export default function GameDetails() {
               : null
             }
           </View>
-          <TouchableOpacity style={styles.deleteButtonContainer}
-            onPress={showDeleteAlert}>
-              <Text style={styles.deleteGameButton}>Delete Game</Text>
-          </TouchableOpacity>
         </View> 
         : null
         }
